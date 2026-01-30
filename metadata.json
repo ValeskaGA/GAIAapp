@@ -1,0 +1,7 @@
+{
+  "name": "GAIA - Tu Espacio de Bienestar",
+  "description": "Una aplicación de bienestar emocional y diario conversacional impulsada por IA para el autodescubrimiento y la salud mental.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

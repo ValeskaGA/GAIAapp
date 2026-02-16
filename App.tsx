@@ -36,8 +36,8 @@ const App: React.FC = () => {
   return (
     <div className="max-w-md mx-auto h-full shadow-2xl relative overflow-hidden bg-background-light dark:bg-background-dark">
       <Routes>
-        <Route path="/" element={<WelcomeIntroScreen />} />
-        <Route path="/welcome" element={<WelcomeScreen />} />
+        <Route path="/" element={<WelcomeScreen />} />
+        <Route path="/intro" element={<WelcomeIntroScreen />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/ethics" element={<EthicsScreen />} />
         <Route path="/consent" element={<ConsentScreen />} />

@@ -15,7 +15,7 @@ const WelcomeIntroScreen: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col justify-center px-8 relative">
         {/* Abstract Background Decoration */}
-        <div 
+        <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 -z-10 opacity-40 dark:opacity-10"
           style={{
             background: 'linear-gradient(135deg, rgba(140, 54, 226, 0.15) 0%, rgba(245, 245, 240, 0) 100%)',
@@ -27,7 +27,7 @@ const WelcomeIntroScreen: React.FC = () => {
           <h1 className="text-[#141117] dark:text-white tracking-tight text-[36px] font-extrabold leading-[1.15]">
             Hola. Este es un espacio para ti.
           </h1>
-          
+
           <p className="text-[#4a454e] dark:text-[#c5c0c9] text-lg font-medium leading-relaxed px-2 opacity-90">
             GAIA no viene a decirte qué sentir ni a arreglarte la vida. Está aquí para acompañarte cuando la mente está cansada y ayudarte a ordenar un poco lo que llevas dentro.
           </p>
@@ -46,8 +46,8 @@ const WelcomeIntroScreen: React.FC = () => {
 
         {/* Action Button */}
         <div className="flex w-full">
-          <button 
-            onClick={() => navigate('/safety')}
+          <button
+            onClick={() => navigate('/ethics')}
             className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-15 px-5 flex-1 bg-primary hover:bg-primary-dark text-white text-lg font-bold transition-all shadow-xl shadow-primary/20 active:scale-[0.98]"
           >
             <span className="truncate">Continuar</span>

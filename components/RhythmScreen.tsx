@@ -1,21 +1,22 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useOnboarding } from '../state/useOnboarding';
 
 const RhythmScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { completeOnboarding } = useOnboarding();
+
+  const handleStart = () => {
+    completeOnboarding();
+    navigate('/chat');
+  };
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep font-display">
       {/* Top Header */}
-      <div className="flex items-center p-6 pt-12 justify-between">
-        <button 
-          onClick={() => navigate(-1)}
-          className="text-[#141117] dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 transition-colors"
-        >
-          <span className="material-symbols-outlined">arrow_back_ios_new</span>
-        </button>
-        <h2 className="text-[#141117] dark:text-white text-lg font-extrabold tracking-tight flex-1 text-center pr-12">Tu Ritmo</h2>
+      <div className="flex items-center p-6 pt-12 justify-center">
+        <h2 className="text-[#141117] dark:text-white text-lg font-extrabold tracking-tight">Tu Ritmo</h2>
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-8 relative">
@@ -48,8 +49,8 @@ const RhythmScreen: React.FC = () => {
       </div>
 
       <div className="p-8 pb-12">
-        <button 
-          onClick={() => navigate('/subscription')}
+        <button
+          onClick={handleStart}
           className="w-full py-5 px-6 bg-lavender-muted dark:bg-primary/30 text-primary dark:text-white font-extrabold rounded-full text-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
         >
           Empezar

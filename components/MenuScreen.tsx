@@ -49,8 +49,8 @@ const MenuScreen: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-warm-beige dark:bg-background-dark animate-sweep">
-      <div className="flex items-center p-6 justify-end">
+    <div className="flex flex-col h-full bg-warm-beige dark:bg-background-dark animate-sweep pt-safe pb-safe">
+      <div className="flex items-center p-4 justify-end">
         <button
           onClick={() => navigate(-1)}
           className="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"

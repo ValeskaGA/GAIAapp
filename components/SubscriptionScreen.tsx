@@ -6,10 +6,10 @@ const SubscriptionScreen: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#fdfbf7] dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep font-display">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#fdfbf7] dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep font-display pt-safe pb-safe">
       {/* Top Navigation */}
-      <div className="flex items-center p-4 pt-10 justify-between">
-        <button 
+      <div className="flex items-center p-4 pt-2 justify-between">
+        <button
           onClick={() => navigate('/ethics')}
           className="text-[#141117] dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
@@ -77,13 +77,13 @@ const SubscriptionScreen: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="mt-auto flex flex-col gap-3">
-          <button 
+          <button
             onClick={() => navigate('/ethics')}
             className="w-full bg-[#8c36e2]/10 border-2 border-[#8c36e2] text-[#8c36e2] font-extrabold py-4 px-6 rounded-full hover:bg-[#8c36e2]/20 active:scale-[0.98] transition-all text-center text-base"
           >
             Probar versión premium
           </button>
-          <button 
+          <button
             onClick={() => navigate('/ethics')}
             className="w-full bg-transparent border-2 border-[#e0dce5] dark:border-white/20 text-[#141117] dark:text-white font-extrabold py-4 px-6 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all text-center text-base"
           >

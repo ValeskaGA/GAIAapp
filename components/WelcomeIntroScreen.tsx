@@ -6,9 +6,9 @@ const WelcomeIntroScreen: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#fbfaf7] dark:bg-background-dark font-display antialiased transition-colors duration-300 animate-sweep">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#fbfaf7] dark:bg-background-dark font-display antialiased transition-colors duration-300 animate-sweep pt-safe pb-safe">
       {/* Top App Bar / Branding */}
-      <div className="flex items-center p-4 pt-12 justify-center">
+      <div className="flex items-center p-4 pt-6 justify-center">
         <h2 className="text-[#141117] dark:text-white text-[13px] font-extrabold tracking-[0.25em] uppercase opacity-60">GAIA</h2>
       </div>
 
@@ -24,7 +24,7 @@ const WelcomeIntroScreen: React.FC = () => {
         ></div>
 
         <div className="space-y-6 text-center">
-          <h1 className="text-[#141117] dark:text-white tracking-tight text-[36px] font-extrabold leading-[1.15]">
+          <h1 className="text-primary dark:text-white tracking-tight text-3xl sm:text-[36px] font-extrabold leading-[1.15]">
             Hola. Este es un espacio para ti.
           </h1>
 
@@ -35,7 +35,7 @@ const WelcomeIntroScreen: React.FC = () => {
       </div>
 
       {/* Footer Area */}
-      <div className="pb-16 px-8 flex flex-col gap-8">
+      <div className="pb-8 px-8 flex flex-col gap-8">
         {/* Page Indicators */}
         <div className="flex w-full flex-row items-center justify-center gap-2.5">
           <div className="h-1.5 w-7 rounded-full bg-primary"></div>

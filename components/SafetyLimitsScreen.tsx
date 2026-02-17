@@ -6,9 +6,9 @@ const SafetyLimitsScreen: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep pt-safe pb-safe">
       {/* TopAppBar / Progress */}
-      <div className="flex items-center justify-between p-6 pt-12">
+      <div className="flex items-center justify-between p-6 pt-6">
         <button
           onClick={() => navigate(-1)}
           className="p-2 -ml-2 rounded-full hover:bg-primary/10 transition-colors text-text-main dark:text-text-dark-main"
@@ -38,7 +38,7 @@ const SafetyLimitsScreen: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <h1 className="text-primary tracking-tight text-[40px] font-extrabold leading-tight">
+          <h1 className="text-primary tracking-tight text-3xl sm:text-[40px] font-extrabold leading-tight">
             Antes de seguir
           </h1>
           <div className="space-y-4">

@@ -13,9 +13,9 @@ const RhythmScreen: React.FC = () => {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep font-display">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-[#141117] dark:text-white transition-colors duration-300 animate-sweep font-display pt-safe pb-safe">
       {/* Top Header */}
-      <div className="flex items-center p-6 pt-12 justify-center">
+      <div className="flex items-center p-6 pt-6 justify-center">
         <h2 className="text-[#141117] dark:text-white text-lg font-extrabold tracking-tight">Tu Ritmo</h2>
       </div>
 
@@ -32,7 +32,7 @@ const RhythmScreen: React.FC = () => {
         </div>
 
         <div className="space-y-4 text-center">
-          <h1 className="text-primary tracking-tight text-[40px] font-extrabold leading-tight">
+          <h1 className="text-primary tracking-tight text-3xl sm:text-[40px] font-extrabold leading-tight">
             No hay una forma correcta
           </h1>
           <p className="text-[#4e4b52] dark:text-gray-300 text-lg font-medium leading-relaxed">

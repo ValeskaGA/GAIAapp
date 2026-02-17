@@ -13,16 +13,16 @@ const ConsentScreen: React.FC = () => {
   const isDecided = saveHistory !== null;
 
   return (
-    <div className="flex flex-col h-full bg-[#f3f2f8] dark:bg-background-dark p-6">
-      <div className="h-12 w-full"></div>
+    <div className="flex flex-col h-full bg-[#f3f2f8] dark:bg-background-dark p-6 pt-safe pb-safe">
+      <div className="h-4 w-full"></div>
       <div className="flex justify-center mb-8">
         <div className="size-16 rounded-full bg-gaia-lavender-100 dark:bg-gaia-lavender-500/20 flex items-center justify-center">
-          <span className="material-symbols-outlined text-gaia-lavender-400 text-[32px]">shield_with_heart</span>
+          <span className="material-symbols-outlined text-primary text-[38px]">shield_with_heart</span>
         </div>
       </div>
 
       <div className="bg-white/90 dark:bg-surface-dark backdrop-blur-sm rounded-3xl p-8 shadow-sm border border-white/20">
-        <h1 className="text-primary tracking-tight text-[32px] font-extrabold leading-tight text-center mb-6">
+        <h1 className="text-text-main dark:text-text-dark-main tracking-tight text-[32px] font-extrabold leading-tight text-center mb-6">
           Sobre guardar tus escritos
         </h1>
         <div className="space-y-4 text-lg font-medium leading-relaxed text-[#4e4b52] dark:text-text-dark-secondary">

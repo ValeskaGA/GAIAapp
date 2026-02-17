@@ -70,8 +70,8 @@ const ChatScreen: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-[#191121] dark:to-[#2d1b42]">
-      <header className="flex items-center justify-between px-6 pt-12 pb-4 z-20">
+    <div className="flex flex-col h-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-[#191121] dark:to-[#2d1b42] pt-safe pb-safe">
+      <header className="flex items-center justify-between px-6 pt-2 pb-4 z-20">
         <button
           onClick={() => navigate('/menu')}
           className="p-2 -ml-2 rounded-full hover:bg-white/20 text-gray-800 dark:text-white"

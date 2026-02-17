@@ -1,15 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="es" class="light">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport" />
     <title>GAIA - Tu Espacio de Bienestar</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: "class",
@@ -60,8 +62,8 @@
                             '50%': { filter: 'blur(60px)', opacity: '0.7' },
                         },
                         'sweep': {
-                            '0%': {opacity: '0', transform: 'translateY(-10px)'},
-                            '100%': {opacity: '1', transform: 'translateY(0)'}
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
                         }
                     }
                 },
@@ -69,29 +71,61 @@
         }
     </script>
     <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         .bg-sage-gradient {
             background: linear-gradient(180deg, #eef7f2 0%, #d8eadd 100%);
         }
+
         .dark .bg-sage-gradient {
             background: linear-gradient(180deg, #151e18 0%, #0f1612 100%);
         }
+
         .organic-gradient {
             background: radial-gradient(circle at center, #ffffff 0%, #e2d5f3 30%, #8c36e2 100%);
         }
+
         .dark .organic-gradient {
             background: radial-gradient(circle at center, #e2d5f3 0%, #8c36e2 40%, #191121 100%);
         }
-        body { 
-          min-height: 100dvh; 
-          margin: 0; 
+
+        body {
+            min-height: 100dvh;
+            margin: 0;
         }
-        #root { 
-          height: 100dvh; 
+
+        #root {
+            height: 100dvh;
+        }
+
+        .pt-safe {
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .mt-safe {
+            margin-top: env(safe-area-inset-top);
+        }
+
+        .mb-safe {
+            margin-bottom: env(safe-area-inset-bottom);
+        }
+
+        .min-h-screen {
+            min-height: 100dvh;
         }
     </style>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@18.3.1",
@@ -103,10 +137,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="/index.css">
 </head>
+
 <body class="bg-background-light dark:bg-background-dark font-display antialiased">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

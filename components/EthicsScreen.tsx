@@ -5,35 +5,14 @@ import { useNavigate } from 'react-router-dom';
 const EthicsScreen: React.FC = () => {
   const navigate = useNavigate();
 
-  // Condición para mostrar puntos de progreso solo la primera vez
-  const [showProgressDots, setShowProgressDots] = useState(false);
-
   // Estados para controlar la visibilidad de las secciones
   const [isWhatIsExpanded, setIsWhatIsExpanded] = useState(true);
   const [isWhatIsNotExpanded, setIsWhatIsNotExpanded] = useState(false);
 
-  useEffect(() => {
-    const hasSeenEthics = localStorage.getItem('ethics_seen');
-    if (!hasSeenEthics) {
-      setShowProgressDots(true);
-      localStorage.setItem('ethics_seen', 'true');
-    }
-  }, []);
-
   return (
     <div className="flex flex-col h-full bg-background-light dark:bg-background-dark pt-safe pb-safe">
-      {/* Indicadores de progreso superiores (solo primera vez) */}
-      {showProgressDots && (
-        <div className="flex-none pt-4 pb-2 flex justify-center gap-2.5">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary/20 dark:bg-primary/40"></div>
-          <div className="h-1.5 w-7 rounded-full bg-primary"></div>
-          <div className="h-1.5 w-1.5 rounded-full bg-primary/20 dark:bg-primary/40"></div>
-          <div className="h-1.5 w-1.5 rounded-full bg-primary/20 dark:bg-primary/40"></div>
-        </div>
-      )}
-
       {/* Header */}
-      <div className={`flex-none p-4 ${showProgressDots ? 'pt-2' : 'pt-4'} pb-2 flex items-center justify-between`}>
+      <div className="flex-none p-4 pt-4 pb-2 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
           className="text-text-main dark:text-text-dark-main flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
@@ -119,8 +98,15 @@ const EthicsScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Button */}
-      <div className="fixed bottom-0 left-0 w-full p-6 pb-8 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-t border-black/5 max-w-md mx-auto translate-x-0 sm:left-1/2 sm:-translate-x-1/2 pb-safe">
+      {/* Bottom Area */}
+      <div className="fixed bottom-0 left-0 w-full p-6 pb-8 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-t border-black/5 max-w-md mx-auto translate-x-0 sm:left-1/2 sm:-translate-x-1/2 pb-safe z-30">
+        {/* Page Indicators */}
+        <div className="flex w-full flex-row items-center justify-center gap-3 py-6">
+          <div className="h-2 w-2 rounded-full bg-primary/30"></div>
+          <div className="h-2 w-10 rounded-full bg-primary"></div>
+          <div className="h-2 w-2 rounded-full bg-primary/30"></div>
+        </div>
+
         <button
           onClick={() => navigate('/consent')}
           className="w-full flex items-center justify-center rounded-2xl h-14 bg-primary hover:bg-primary-dark text-white font-bold transition-all shadow-lg active:scale-[0.98] gap-3"

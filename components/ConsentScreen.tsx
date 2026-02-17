@@ -53,10 +53,10 @@ const ConsentScreen: React.FC = () => {
           onClick={() => isDecided && navigate('/safety')}
           disabled={!isDecided}
           className={`w-full h-14 rounded-full text-white text-lg font-bold shadow-lg transition-all active:scale-[0.98] ${isDecided
-              ? 'bg-gaia-purple-vibrant hover:brightness-110'
-              : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+            ? 'bg-gaia-purple-vibrant hover:brightness-110'
+            : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
             } ${saveHistory === true
-              ? 'ring-4 ring-gaia-lavender-400/30 shadow-[0_0_25px_rgba(180,160,255,0.4)]'
+              ? 'shadow-[0_0_30px_rgba(167,139,250,0.6)]'
               : ''
             }`}
         >

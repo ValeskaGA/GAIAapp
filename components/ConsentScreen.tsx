@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 
 const ConsentScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [saveHistory, setSaveHistory] = useState(false);
+  const [saveHistory, setSaveHistory] = useState<boolean | null>(null);
+
+  const handleToggle = () => {
+    setSaveHistory(prev => (prev === null ? true : !prev));
+  };
+
+  const isDecided = saveHistory !== null;
 
   return (
     <div className="flex flex-col h-full bg-[#f3f2f8] dark:bg-background-dark p-6">
@@ -25,20 +31,17 @@ const ConsentScreen: React.FC = () => {
         <div className="mt-10 pt-8 border-t border-gaia-lavender-100 dark:border-white/5">
           <div className="flex items-center justify-between gap-4">
             <span className="text-[15px] font-semibold text-text-main dark:text-text-dark-main">Guardar mis conversaciones en mi historial</span>
-            <div className="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
-              <input
-                type="checkbox"
-                id="toggle"
-                checked={saveHistory}
-                onChange={() => setSaveHistory(!saveHistory)}
-                className="hidden"
-              />
-              <label
-                htmlFor="toggle"
-                className={`block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ${saveHistory ? 'bg-gaia-lavender-400' : 'bg-gaia-lavender-200'}`}
+            <div
+              className="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in cursor-pointer"
+              onClick={handleToggle}
+            >
+              <div
+                className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ${saveHistory === true ? 'bg-gaia-lavender-400' : 'bg-gaia-lavender-200'}`}
               >
-                <span className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${saveHistory ? 'translate-x-6 border-gaia-lavender-400' : 'translate-x-0 border-gaia-lavender-100'}`}></span>
-              </label>
+                <div
+                  className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${saveHistory === true ? 'translate-x-6 border-gaia-lavender-400' : 'translate-x-0 border-gaia-lavender-100'} ${saveHistory === true ? 'shadow-[0_0_10px_rgba(180,160,255,0.5)]' : ''}`}
+                ></div>
+              </div>
             </div>
           </div>
           <p className="mt-4 text-[11px] text-center opacity-60 text-text-secondary dark:text-text-dark-secondary">Puedes cambiar esta decisión cuando quieras desde el menú.</p>
@@ -47,8 +50,12 @@ const ConsentScreen: React.FC = () => {
 
       <div className="mt-auto pt-12">
         <button
-          onClick={() => navigate('/safety')}
-          className="w-full h-14 rounded-full bg-gaia-purple-vibrant text-white text-lg font-bold shadow-lg hover:brightness-110 transition-all active:scale-[0.98]"
+          onClick={() => isDecided && navigate('/safety')}
+          disabled={!isDecided}
+          className={`w-full h-14 rounded-full text-white text-lg font-bold shadow-lg transition-all active:scale-[0.98] ${isDecided
+              ? 'bg-gaia-purple-vibrant hover:brightness-110'
+              : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+            }`}
         >
           Continuar
         </button>

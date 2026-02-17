@@ -5,23 +5,24 @@ import { useNavigate } from 'react-router-dom';
 const MenuScreen: React.FC = () => {
   const navigate = useNavigate();
   const [showConfigModal, setShowConfigModal] = useState(false);
-  
+
   // Estado para el nombre del perfil con persistencia
   const [userName, setUserName] = useState(() => localStorage.getItem('gaia_user_name') || 'Viajero');
-  
+
   // Estados para el modal de edición
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editName, setEditName] = useState(userName);
   const [error, setError] = useState('');
 
   const menuItems = [
+    { icon: 'chat', label: 'Chat con GAIA', path: '/chat' },
     { icon: 'sentiment_satisfied', label: 'Registro emocional', path: '/checkin' },
     { icon: 'auto_stories', label: 'Historial del diario', path: '/history' },
     { icon: 'verified_user', label: 'Ética y límites', path: '/ethics' },
-    { 
-      icon: 'settings', 
-      label: 'Configuración', 
-      onClick: () => setShowConfigModal(true) 
+    {
+      icon: 'settings',
+      label: 'Configuración',
+      onClick: () => setShowConfigModal(true)
     }
   ];
 
@@ -50,24 +51,24 @@ const MenuScreen: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-warm-beige dark:bg-background-dark animate-sweep">
       <div className="flex items-center p-6 justify-end">
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           className="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
         >
           <span className="material-symbols-outlined text-[28px]">close</span>
         </button>
       </div>
-      
+
       <div className="px-6 pb-8">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             {/* Avatar Circle */}
             <div className="aspect-square rounded-full h-24 w-24 border-4 border-white dark:border-white/10 shadow-sm bg-cover bg-center overflow-hidden bg-primary/10 flex items-center justify-center">
-               <span className="material-symbols-outlined text-4xl text-primary">person</span>
+              <span className="material-symbols-outlined text-4xl text-primary">person</span>
             </div>
-            
+
             {/* Botón de Lápiz (Editar Perfil) */}
-            <button 
+            <button
               onClick={() => setIsEditModalOpen(true)}
               aria-label="Editar perfil"
               className="absolute bottom-0 -right-1 size-8 rounded-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-white/10 shadow-md flex items-center justify-center text-primary hover:scale-110 active:scale-95 transition-all z-10"
@@ -75,23 +76,23 @@ const MenuScreen: React.FC = () => {
               <span className="material-symbols-outlined text-[18px]">edit</span>
             </button>
           </div>
-          
+
           <div className="text-center">
             <h1 className="text-2xl font-bold text-text-main dark:text-text-dark-main">Hola, {userName}</h1>
             <p className="text-text-secondary dark:text-text-dark-secondary text-sm font-medium mt-1">Tu espacio seguro</p>
           </div>
         </div>
       </div>
-      
+
       <div className="px-6 mb-4">
         <div className="h-px w-full bg-[#E6E1D6] dark:bg-white/10"></div>
       </div>
-      
+
       <div className="flex flex-col px-4 gap-2 flex-1">
         {menuItems.map((item, idx) => (
-          <div 
-            key={idx} 
-            onClick={item.onClick || (() => navigate(item.path!))} 
+          <div
+            key={idx}
+            onClick={item.onClick || (() => navigate(item.path!))}
             className="group flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-white/5 hover:shadow-sm transition-all cursor-pointer"
           >
             <div className="flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shrink-0 size-10 shadow-sm border border-[#EBE8E0] dark:border-white/5 text-primary">
@@ -102,10 +103,10 @@ const MenuScreen: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       <div className="p-6 mt-auto">
-        <button 
-          onClick={() => navigate('/')} 
+        <button
+          onClick={() => navigate('/')}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-text-secondary hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition-colors"
         >
           <span className="material-symbols-outlined">logout</span>
@@ -121,14 +122,14 @@ const MenuScreen: React.FC = () => {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-sweep">
           <div className="bg-white dark:bg-surface-dark w-full max-w-sm rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-white/5">
             <h3 className="text-xl font-bold text-text-main dark:text-text-dark-main mb-6 text-center">Editar perfil</h3>
-            
+
             <div className="space-y-6">
               {/* Campo Nombre */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-text-secondary dark:text-text-dark-secondary mb-2 px-1">
                   Nombre
                 </label>
-                <input 
+                <input
                   autoFocus
                   type="text"
                   maxLength={25}
@@ -156,13 +157,13 @@ const MenuScreen: React.FC = () => {
             </div>
 
             <div className="mt-8 flex flex-col gap-3">
-              <button 
+              <button
                 onClick={handleSaveProfile}
                 className="w-full h-12 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-md"
               >
                 Guardar
               </button>
-              <button 
+              <button
                 onClick={handleCancelEdit}
                 className="w-full h-12 rounded-full border border-gray-200 dark:border-white/10 text-text-secondary dark:text-text-dark-secondary font-bold hover:bg-gray-50 dark:hover:bg-white/5 active:scale-95 transition-all"
               >
@@ -184,7 +185,7 @@ const MenuScreen: React.FC = () => {
             <p className="text-text-secondary dark:text-text-dark-secondary text-sm mb-8 leading-relaxed">
               Esta opción estará disponible pronto.
             </p>
-            <button 
+            <button
               onClick={() => setShowConfigModal(false)}
               className="w-full h-12 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-md"
             >

@@ -36,10 +36,10 @@ const ConsentScreen: React.FC = () => {
               onClick={handleToggle}
             >
               <div
-                className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ${saveHistory === true ? 'bg-gaia-lavender-400' : 'bg-gaia-lavender-200'}`}
+                className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ${saveHistory === true ? 'bg-gaia-purple-vibrant' : 'bg-gaia-lavender-200'}`}
               >
                 <div
-                  className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${saveHistory === true ? 'translate-x-6 border-gaia-lavender-400' : 'translate-x-0 border-gaia-lavender-100'} ${saveHistory === true ? 'shadow-[0_0_10px_rgba(180,160,255,0.5)]' : ''}`}
+                  className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${saveHistory === true ? 'translate-x-6 border-gaia-purple-vibrant' : 'translate-x-0 border-gaia-lavender-100'} ${saveHistory === true ? 'shadow-[0_0_15px_rgba(167,139,250,1)]' : ''}`}
                 ></div>
               </div>
             </div>

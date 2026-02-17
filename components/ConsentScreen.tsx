@@ -22,8 +22,10 @@ const ConsentScreen: React.FC = () => {
       </div>
 
       <div className="bg-white/90 dark:bg-surface-dark backdrop-blur-sm rounded-3xl p-8 shadow-sm border border-white/20">
-        <h1 className="text-2xl font-bold text-center mb-6 text-text-main dark:text-text-dark-main">Sobre guardar tus escritos</h1>
-        <div className="space-y-4 text-[15px] leading-relaxed text-[#4a4a4e] dark:text-text-dark-secondary">
+        <h1 className="text-primary tracking-tight text-[32px] font-extrabold leading-tight text-center mb-6">
+          Sobre guardar tus escritos
+        </h1>
+        <div className="space-y-4 text-lg font-medium leading-relaxed text-[#4e4b52] dark:text-text-dark-secondary">
           <p>En GAIA puedes escribir libremente. Si quieres, puedes permitir que tus conversaciones se guarden como parte de tu historial personal.</p>
           <p>Esta opción es voluntaria. Tus textos no se venden ni se comparten.</p>
         </div>
@@ -32,14 +34,14 @@ const ConsentScreen: React.FC = () => {
           <div className="flex items-center justify-between gap-4">
             <span className="text-[15px] font-semibold text-text-main dark:text-text-dark-main">Guardar mis conversaciones en mi historial</span>
             <div
-              className="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in cursor-pointer"
+              className={`relative inline-block w-12 h-6 align-middle select-none transition-all duration-300 ease-in cursor-pointer rounded-full ${saveHistory === true ? 'shadow-[0_0_20px_rgba(167,139,250,0.8)]' : ''}`}
               onClick={handleToggle}
             >
               <div
                 className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ${saveHistory === true ? 'bg-gaia-purple-vibrant' : 'bg-gaia-lavender-200'}`}
               >
                 <div
-                  className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${saveHistory === true ? 'translate-x-6 border-gaia-purple-vibrant' : 'translate-x-0 border-gaia-lavender-100'} ${saveHistory === true ? 'shadow-[0_0_15px_rgba(167,139,250,1)]' : ''}`}
+                  className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${saveHistory === true ? 'translate-x-6 border-gaia-purple-vibrant' : 'translate-x-0 border-gaia-lavender-100'}`}
                 ></div>
               </div>
             </div>
@@ -55,9 +57,6 @@ const ConsentScreen: React.FC = () => {
           className={`w-full h-14 rounded-full text-white text-lg font-bold shadow-lg transition-all active:scale-[0.98] ${isDecided
             ? 'bg-gaia-purple-vibrant hover:brightness-110'
             : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
-            } ${saveHistory === true
-              ? 'shadow-[0_0_30px_rgba(167,139,250,0.6)]'
-              : ''
             }`}
         >
           Continuar

@@ -32,7 +32,7 @@ const RhythmScreen: React.FC = () => {
         </div>
 
         <div className="space-y-4 text-center">
-          <h1 className="text-primary tracking-tight text-[32px] font-extrabold leading-tight">
+          <h1 className="text-primary tracking-tight text-[40px] font-extrabold leading-tight">
             No hay una forma correcta
           </h1>
           <p className="text-[#4e4b52] dark:text-gray-300 text-lg font-medium leading-relaxed">

@@ -8,6 +8,7 @@ export class GeminiService {
 
   private getAIInstance() {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    console.log("Gemini key loaded:", import.meta.env.VITE_GEMINI_API_KEY ? "YES" : "NO");
     return new GoogleGenAI({ apiKey: apiKey || '' });
   }
 

@@ -21,3 +21,15 @@ export enum ModelType {
   PRO = 'gemini-3-flash-preview',
   FLASH = 'gemini-flash-lite-latest'
 }
+
+export interface EmotionalEntry {
+  id: string;
+  user_id: string;
+  created_at: string;
+  emotion: string;
+  intensity: number;
+  context: string | null;
+  cause: string | null;
+  summary: string | null;
+  source: 'chat' | 'manual';
+}

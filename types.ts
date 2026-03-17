@@ -18,6 +18,6 @@ export interface EmotionEntry {
 }
 
 export enum ModelType {
-  PRO = 'gemini-3.1-flash',
+  PRO = 'gemini-3-flash-preview',
   FLASH = 'gemini-flash-lite-latest'
 }

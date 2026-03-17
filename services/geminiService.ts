@@ -7,8 +7,7 @@ export class GeminiService {
   private currentModel: ModelType = ModelType.PRO;
 
   private getAIInstance() {
-    // Acceso seguro a la API_KEY para evitar errores de referencia en el arranque
-    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     return new GoogleGenAI({ apiKey: apiKey || '' });
   }
 
@@ -32,12 +31,13 @@ export class GeminiService {
     if (!this.chat) {
       await this.startNewChat(this.currentModel);
     }
-    
+
     try {
       const response: GenerateContentResponse = await this.chat!.sendMessage({ message });
       return response.text || "Lo siento, tuve un problema procesando eso. ¿Podrías repetirlo?";
     } catch (error) {
       console.error("Gemini API Error:", error);
+      console.error("Detalles:", JSON.stringify(error, null, 2));
       return "Hubo un error al conectar con GAIA. Por favor, intenta de nuevo.";
     }
   }
@@ -55,6 +55,7 @@ export class GeminiService {
       }
     } catch (error) {
       console.error("Gemini API Stream Error:", error);
+      console.error("Detalles:", JSON.stringify(error, null, 2));
       yield "Error de conexión.";
     }
   }

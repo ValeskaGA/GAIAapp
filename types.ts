@@ -25,11 +25,13 @@ export enum ModelType {
 export interface EmotionalEntry {
   id: string;
   user_id: string;
-  created_at: string;
+  entry_date: string;
   emotion: string;
-  intensity: number;
-  context: string | null;
+  intensity: number; // Escala 1-10
+  place: string | null;
   cause: string | null;
-  summary: string | null;
-  source: 'chat' | 'manual';
+  consequence: string | null;
+  note_brief: string | null;
+  source: string;
+  created_at: string;
 }

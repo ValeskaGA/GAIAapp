@@ -1,15 +1,15 @@
 import { supabase } from './supabaseClient';
 import { EmotionalEntry } from '../types';
 
-export type EmotionalEntryInput = Omit<EmotionalEntry, 'id' | 'created_at'>;
+export type EmotionalEntryInput = Omit<EmotionalEntry, 'id' | 'created_at' | 'entry_date'>;
 
 export const emotionalMemoryService = {
   /**
-   * Guarda un registro emocional en Supabase.
+   * Guarda un registro emocional en Supabase (tabla entries).
    */
   async saveEntry(entry: EmotionalEntryInput): Promise<EmotionalEntry | null> {
     const { data, error } = await supabase
-      .from('emotional_entries')
+      .from('entries')
       .insert(entry)
       .select()
       .single();
@@ -25,9 +25,9 @@ export const emotionalMemoryService = {
   /**
    * Obtiene todos los registros emocionales de un usuario.
    */
-  async getEntries(userId: string = 'anonymous'): Promise<EmotionalEntry[]> {
+  async getEntries(userId: string): Promise<EmotionalEntry[]> {
     const { data, error } = await supabase
-      .from('emotional_entries')
+      .from('entries')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -43,9 +43,9 @@ export const emotionalMemoryService = {
   /**
    * Obtiene los últimos N registros emocionales de un usuario.
    */
-  async getRecentEntries(userId: string = 'anonymous', limit: number = 10): Promise<EmotionalEntry[]> {
+  async getRecentEntries(userId: string, limit: number = 10): Promise<EmotionalEntry[]> {
     const { data, error } = await supabase
-      .from('emotional_entries')
+      .from('entries')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })

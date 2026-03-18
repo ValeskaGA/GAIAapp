@@ -34,16 +34,20 @@ const App: React.FC = () => {
   const { entries: history, addEntry } = useHistory();
 
   // === PRUEBA TEMPORAL: verificar conexión Supabase ===
+  // NOTA: Esta prueba requiere un user_id válido (UUID de auth.users).
+  // Descomentar y reemplazar el UUID cuando se tenga un usuario autenticado.
+  /*
   useEffect(() => {
     const testSupabase = async () => {
       console.log("🧪 Enviando registro de prueba a Supabase...");
       const result = await emotionalMemoryService.saveEntry({
-        user_id: 'anonymous',
+        user_id: 'REEMPLAZAR-CON-UUID-REAL',
         emotion: 'calma',
-        intensity: 3,
-        context: 'prueba GAIA',
+        intensity: 5,
+        place: 'prueba GAIA',
         cause: 'test sistema',
-        summary: 'primera memoria emocional',
+        consequence: null,
+        note_brief: 'primera memoria emocional',
         source: 'chat',
       });
       if (result) {
@@ -54,6 +58,7 @@ const App: React.FC = () => {
     };
     testSupabase();
   }, []);
+  */
   // === FIN PRUEBA TEMPORAL ===
 
 

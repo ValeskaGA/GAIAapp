@@ -15,7 +15,12 @@ export const emotionalMemoryService = {
       .single();
 
     if (error) {
-      console.error('Error saving emotional entry:', error);
+      console.error('❌ Error saving emotional entry:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
       return null;
     }
 

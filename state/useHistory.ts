@@ -64,32 +64,48 @@ const loadHistoryFromStorage = (): EmotionEntry[] => {
  */
 async function persistToSupabase(entry: EmotionEntry): Promise<void> {
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // Usar getSession (cache local) en vez de getUser (network call)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (!user) {
-            console.warn('⚠️ No hay usuario autenticado — entrada guardada solo localmente.');
+        if (sessionError) {
+            console.error('❌ Error obteniendo sesión:', sessionError.message);
             return;
         }
 
-        // Mapeo: EmotionEntry (local, 1-5) → EmotionalEntryInput (Supabase, 1-10)
+        if (!session?.user) {
+            console.warn('⚠️ No hay sesión activa — entrada guardada solo localmente.');
+            return;
+        }
+
+        const userId = session.user.id;
+
+        // Mapeo: EmotionEntry (local, 1-5) → campos de public.entries
         const intensity = entry.intensity
             ? Math.min(10, Math.max(1, entry.intensity * 2))
             : 5;
 
-        await emotionalMemoryService.saveEntry({
-            user_id: user.id,
+        const payload = {
+            user_id: userId,
             emotion: entry.mood,
             intensity,
             place: null,
             cause: null,
             consequence: null,
             note_brief: entry.text || null,
-            source: 'manual',
-        });
+            source: 'manual' as string,
+        };
 
-        console.log('✅ Entrada guardada en Supabase (entries).');
+        console.log('📤 Enviando a Supabase entries:', JSON.stringify(payload, null, 2));
+
+        const result = await emotionalMemoryService.saveEntry(payload);
+
+        if (result) {
+            console.log('✅ Entrada guardada en Supabase (entries):', result.id);
+        } else {
+            console.error('❌ saveEntry devolvió null — revisa errores anteriores.');
+        }
     } catch (err) {
-        console.error('❌ Error al persistir en Supabase (no afecta historial local):', err);
+        console.error('❌ Error inesperado al persistir en Supabase:', err);
     }
 }
 

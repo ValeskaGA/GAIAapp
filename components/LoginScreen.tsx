@@ -1,18 +1,31 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../state/useAuth';
 
 const LoginScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // En un entorno real aquí iría la validación
-    // Por ahora, simulamos un login exitoso llevando al usuario al chat
-    navigate('/chat');
+    setError('');
+    setIsLoading(true);
+
+    const result = await signIn(email, password);
+
+    if (result.success) {
+      navigate('/chat');
+    } else {
+      setError(result.error || 'Error al iniciar sesión.');
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -42,6 +55,14 @@ const LoginScreen: React.FC = () => {
           </p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium text-center animate-sweep">
+            <span className="material-symbols-outlined text-base align-middle mr-1">error</span>
+            {error}
+          </div>
+        )}
+
         {/* Form Fields */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col w-full">
@@ -52,7 +73,8 @@ const LoginScreen: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex w-full rounded-2xl text-[#141117] dark:text-white dark:bg-[#191121] focus:outline-none focus:ring-2 focus:ring-primary/20 border border-[#e0dce5] dark:border-gray-700 bg-white focus:border-primary h-14 placeholder:text-[#756487]/50 px-4 text-base font-medium transition-all"
+                disabled={isLoading}
+                className="flex w-full rounded-2xl text-[#141117] dark:text-white dark:bg-[#191121] focus:outline-none focus:ring-2 focus:ring-primary/20 border border-[#e0dce5] dark:border-gray-700 bg-white focus:border-primary h-14 placeholder:text-[#756487]/50 px-4 text-base font-medium transition-all disabled:opacity-50"
                 placeholder="tu@correo.com"
               />
             </label>
@@ -67,7 +89,8 @@ const LoginScreen: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="flex w-full border-none bg-transparent h-14 text-[#141117] dark:text-white placeholder:text-[#756487]/50 px-4 text-base font-medium focus:ring-0"
+                  disabled={isLoading}
+                  className="flex w-full border-none bg-transparent h-14 text-[#141117] dark:text-white placeholder:text-[#756487]/50 px-4 text-base font-medium focus:ring-0 disabled:opacity-50"
                   placeholder="••••••••"
                 />
                 <button
@@ -92,9 +115,17 @@ const LoginScreen: React.FC = () => {
           <div className="pt-6">
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-primary-dark text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+              disabled={isLoading}
+              className="w-full bg-primary hover:bg-primary-dark text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Entrar
+              {isLoading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                  <span>Entrando...</span>
+                </>
+              ) : (
+                'Entrar'
+              )}
             </button>
           </div>
         </form>

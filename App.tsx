@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import WelcomeScreen from './components/WelcomeScreen';
 import WelcomeIntroScreen from './components/WelcomeIntroScreen';
@@ -17,7 +17,6 @@ import InsightsScreen from './components/InsightsScreen';
 import LoginScreen from './components/LoginScreen';
 import { useHistory } from './state/useHistory';
 import { useOnboarding } from './state/useOnboarding';
-import { emotionalMemoryService } from './services/emotionalMemoryService';
 
 // Componente para proteger rutas que requieren onboarding completado
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -32,35 +31,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 const App: React.FC = () => {
   const { entries: history, addEntry } = useHistory();
-
-  // === PRUEBA TEMPORAL: verificar conexión Supabase ===
-  // NOTA: Esta prueba requiere un user_id válido (UUID de auth.users).
-  // Descomentar y reemplazar el UUID cuando se tenga un usuario autenticado.
-  /*
-  useEffect(() => {
-    const testSupabase = async () => {
-      console.log("🧪 Enviando registro de prueba a Supabase...");
-      const result = await emotionalMemoryService.saveEntry({
-        user_id: 'REEMPLAZAR-CON-UUID-REAL',
-        emotion: 'calma',
-        intensity: 5,
-        place: 'prueba GAIA',
-        cause: 'test sistema',
-        consequence: null,
-        note_brief: 'primera memoria emocional',
-        source: 'chat',
-      });
-      if (result) {
-        console.log("✅ Registro enviado exitosamente:", result);
-      } else {
-        console.log("❌ Error al enviar registro. Revisa la consola.");
-      }
-    };
-    testSupabase();
-  }, []);
-  */
-  // === FIN PRUEBA TEMPORAL ===
-
 
   return (
     <div className="max-w-md mx-auto h-full shadow-2xl relative overflow-hidden bg-background-light dark:bg-background-dark">

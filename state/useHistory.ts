@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { EmotionEntry } from '../types';
+import { emotionalMemoryService } from '../services/emotionalMemoryService';
+import { supabase } from '../services/supabaseClient';
 
 export type EmotionEntryInput = Partial<Omit<EmotionEntry, 'timestamp' | 'intensity'>> & {
     timestamp?: Date | string | number;
@@ -56,6 +58,41 @@ const loadHistoryFromStorage = (): EmotionEntry[] => {
     }
 };
 
+/**
+ * Persiste la entrada en Supabase (fire-and-forget).
+ * Si falla, solo logea el error — el historial local sigue intacto.
+ */
+async function persistToSupabase(entry: EmotionEntry): Promise<void> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            console.warn('⚠️ No hay usuario autenticado — entrada guardada solo localmente.');
+            return;
+        }
+
+        // Mapeo: EmotionEntry (local, 1-5) → EmotionalEntryInput (Supabase, 1-10)
+        const intensity = entry.intensity
+            ? Math.min(10, Math.max(1, entry.intensity * 2))
+            : 5;
+
+        await emotionalMemoryService.saveEntry({
+            user_id: user.id,
+            emotion: entry.mood,
+            intensity,
+            place: null,
+            cause: null,
+            consequence: null,
+            note_brief: entry.text || null,
+            source: 'manual',
+        });
+
+        console.log('✅ Entrada guardada en Supabase (entries).');
+    } catch (err) {
+        console.error('❌ Error al persistir en Supabase (no afecta historial local):', err);
+    }
+}
+
 export const useHistory = () => {
     const [entries, setEntries] = useState<EmotionEntry[]>(loadHistoryFromStorage);
 
@@ -102,7 +139,11 @@ export const useHistory = () => {
             intensity,
         };
 
+        // 1. Guardar en localStorage (inmediato, síncrono)
         setEntries((prev) => [safeEntry, ...prev]);
+
+        // 2. Persistir en Supabase (fire-and-forget, no bloquea)
+        persistToSupabase(safeEntry);
     };
 
     return { entries, addEntry };

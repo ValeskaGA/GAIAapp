@@ -63,8 +63,10 @@ const loadHistoryFromStorage = (): EmotionEntry[] => {
  * Si falla, solo logea el error — el historial local sigue intacto.
  */
 async function persistToSupabase(entry: EmotionEntry): Promise<void> {
+    console.log('🟢 [DEBUG] persistToSupabase() INICIO — entry.mood:', entry.mood, 'entry.intensity:', entry.intensity);
     try {
         // Usar getSession (cache local) en vez de getUser (network call)
+        console.log('🔑 [DEBUG] Obteniendo sesión...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
@@ -78,6 +80,7 @@ async function persistToSupabase(entry: EmotionEntry): Promise<void> {
         }
 
         const userId = session.user.id;
+        console.log('🔑 [DEBUG] userId obtenido:', userId);
 
         // Mapeo: EmotionEntry (local, 1-5) → campos de public.entries
         const intensity = entry.intensity
@@ -95,9 +98,12 @@ async function persistToSupabase(entry: EmotionEntry): Promise<void> {
             source: 'manual' as string,
         };
 
-        console.log('📤 Enviando a Supabase entries:', JSON.stringify(payload, null, 2));
+        console.log('📤 [DEBUG] Payload EXACTO para Supabase insert:', JSON.stringify(payload, null, 2));
+        console.log('📤 [DEBUG] Llamando emotionalMemoryService.saveEntry()...');
 
         const result = await emotionalMemoryService.saveEntry(payload);
+
+        console.log('📤 [DEBUG] saveEntry() retornó:', result);
 
         if (result) {
             console.log('✅ Entrada guardada en Supabase (entries):', result.id);
@@ -105,8 +111,12 @@ async function persistToSupabase(entry: EmotionEntry): Promise<void> {
             console.error('❌ saveEntry devolvió null — revisa errores anteriores.');
         }
     } catch (err) {
-        console.error('❌ Error inesperado al persistir en Supabase:', err);
+        console.error('❌ [DEBUG] Error inesperado al persistir en Supabase:', err);
+        if (err instanceof Error) {
+            console.error('❌ [DEBUG] Error name:', err.name, 'message:', err.message, 'stack:', err.stack);
+        }
     }
+    console.log('🟢 [DEBUG] persistToSupabase() FIN');
 }
 
 export const useHistory = () => {
@@ -125,7 +135,11 @@ export const useHistory = () => {
     }, [entries]);
 
     const addEntry = (entrada?: EmotionEntryInput) => {
-        if (!entrada) return;
+        console.log('🟡 [DEBUG] addEntry() INVOCADO — entrada:', entrada);
+        if (!entrada) {
+            console.warn('🟡 [DEBUG] addEntry() — entrada es undefined/null, saliendo.');
+            return;
+        }
 
         let timestamp: Date;
         if (entrada.timestamp instanceof Date) {
@@ -155,11 +169,18 @@ export const useHistory = () => {
             intensity,
         };
 
+        console.log('🟡 [DEBUG] safeEntry construido:', JSON.stringify({ ...safeEntry, timestamp: safeEntry.timestamp.toISOString() }, null, 2));
+
         // 1. Guardar en localStorage (inmediato, síncrono)
         setEntries((prev) => [safeEntry, ...prev]);
+        console.log('🟡 [DEBUG] localStorage actualizado');
 
         // 2. Persistir en Supabase (fire-and-forget, no bloquea)
-        persistToSupabase(safeEntry);
+        // Usamos .catch para asegurar que los errores nunca se pierdan
+        persistToSupabase(safeEntry).catch((err) => {
+            console.error('❌ [DEBUG] persistToSupabase promise rechazada:', err);
+        });
+        console.log('🟡 [DEBUG] persistToSupabase() lanzado (async)');
     };
 
     return { entries, addEntry };

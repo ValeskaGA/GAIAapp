@@ -8,23 +8,37 @@ export const emotionalMemoryService = {
    * Guarda un registro emocional en Supabase (tabla entries).
    */
   async saveEntry(entry: EmotionalEntryInput): Promise<EmotionalEntry | null> {
-    const { data, error } = await supabase
-      .from('entries')
-      .insert(entry)
-      .select()
-      .single();
+    console.log('🔵 [DEBUG] emotionalMemoryService.saveEntry() INICIO');
+    console.log('🔵 [DEBUG] entry recibido:', JSON.stringify(entry, null, 2));
 
-    if (error) {
-      console.error('❌ Error saving emotional entry:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
+    try {
+      console.log('🔵 [DEBUG] Ejecutando supabase.from("entries").insert()...');
+      const { data, error } = await supabase
+        .from('entries')
+        .insert(entry)
+        .select()
+        .single();
+
+      console.log('🔵 [DEBUG] Supabase respondió — data:', data, 'error:', error);
+
+      if (error) {
+        console.error('❌ [DEBUG] Error saving emotional entry:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          status: (error as any).status,
+          statusText: (error as any).statusText,
+        });
+        return null;
+      }
+
+      console.log('🔵 [DEBUG] Insert exitoso — data.id:', data?.id);
+      return data as EmotionalEntry;
+    } catch (err) {
+      console.error('❌ [DEBUG] Excepción no capturada en saveEntry:', err);
       return null;
     }
-
-    return data as EmotionalEntry;
   },
 
   /**

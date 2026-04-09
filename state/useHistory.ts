@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { EmotionEntry } from '../types';
+import { useState, useEffect, useRef } from 'react';
+import { EmotionEntry, EmotionalEntry } from '../types';
 import { emotionalMemoryService } from '../services/emotionalMemoryService';
 import { supabase } from '../services/supabaseClient';
+import { useAuth } from './AuthContext';
 
 export type EmotionEntryInput = Partial<Omit<EmotionEntry, 'timestamp' | 'intensity'>> & {
     timestamp?: Date | string | number;
@@ -10,134 +11,173 @@ export type EmotionEntryInput = Partial<Omit<EmotionEntry, 'timestamp' | 'intens
 
 const GAIA_HISTORY_V1 = 'gaia_emotion_history_v1';
 
-const defaultHistory: EmotionEntry[] = [
-    {
-        id: '1',
-        date: '24 Oct • 10:30 AM',
-        mood: 'Feliz',
-        icon: 'sentiment_satisfied',
-        color: 'bg-purple-100 text-primary',
-        text: 'Hoy tuve una conversación excelente con Sarah. Hablamos de todo y finalmente me sentí conectado...',
-        timestamp: new Date(2024, 9, 24),
-        intensity: 5
-    },
-    {
-        id: '2',
-        date: '23 Oct • 8:15 PM',
-        mood: 'Cansado/a',
-        icon: 'bedtime',
-        color: 'bg-orange-100 text-orange-500',
-        text: 'Hoy fue un día largo en el trabajo. Me sentí abrumado con los plazos acumulándose...',
-        timestamp: new Date(2024, 9, 23),
-        intensity: 3
-    },
-    {
-        id: '3',
-        date: '22 Oct • 6:00 PM',
-        mood: 'Calma',
-        icon: 'spa',
-        color: 'bg-indigo-100 text-indigo-500',
-        text: 'Una tarde tranquila leyendo. Hacía tiempo que no lograba apagar el ruido mental.',
-        timestamp: new Date(2024, 9, 22),
-        intensity: 4
-    }
-];
+// ─── Mapeo de emociones a iconos y colores ─────────────────────────
+const EMOTION_ICON_MAP: Record<string, { icon: string; color: string }> = {
+    'En calma':       { icon: 'sentiment_satisfied',  color: 'bg-purple-50 text-primary' },
+    'Feliz':          { icon: 'sentiment_satisfied',  color: 'bg-purple-100 text-primary' },
+    'Cansado/a':      { icon: 'bedtime',              color: 'bg-orange-100 text-orange-500' },
+    'Un poco bajo/a': { icon: 'trending_down',        color: 'bg-blue-50 text-blue-500' },
+    'Inquieto/a':     { icon: 'air',                  color: 'bg-yellow-50 text-yellow-600' },
+    'Calma':          { icon: 'spa',                   color: 'bg-indigo-100 text-indigo-500' },
+    'Triste':         { icon: 'sentiment_dissatisfied', color: 'bg-blue-100 text-blue-500' },
+    'Ansioso/a':      { icon: 'psychology',            color: 'bg-red-50 text-red-400' },
+};
 
-const loadHistoryFromStorage = (): EmotionEntry[] => {
+const DEFAULT_ICON  = 'mood';
+const DEFAULT_COLOR = 'bg-purple-100 text-primary';
+
+// ─── Conversiones DB ↔ UI ──────────────────────────────────────────
+
+/**
+ * Convierte un registro de Supabase (EmotionalEntry) al formato de UI (EmotionEntry).
+ * DB.intensity es 1-10, UI.intensity es 1-5.
+ */
+function dbEntryToUI(db: EmotionalEntry): EmotionEntry {
+    const createdAt = new Date(db.created_at);
+    const mapped = EMOTION_ICON_MAP[db.emotion];
+
+    return {
+        id: db.id,
+        date: createdAt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+              + ' • '
+              + createdAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        mood: db.emotion,
+        icon: mapped?.icon ?? DEFAULT_ICON,
+        color: mapped?.color ?? DEFAULT_COLOR,
+        text: db.note_brief ?? '',
+        timestamp: createdAt,
+        intensity: Math.max(1, Math.min(5, Math.round(db.intensity / 2))),
+    };
+}
+
+/**
+ * Convierte un EmotionEntry (UI, 1-5) al payload de insert en Supabase (1-10).
+ */
+function uiEntryToDbPayload(entry: EmotionEntry, userId: string) {
+    const intensity = entry.intensity
+        ? Math.min(10, Math.max(1, entry.intensity * 2))
+        : 5;
+
+    return {
+        user_id: userId,
+        emotion: entry.mood,
+        intensity,
+        place: null,
+        cause: null,
+        consequence: null,
+        note_brief: entry.text || null,
+        source: 'manual' as string,
+    };
+}
+
+// ─── LocalStorage helpers ──────────────────────────────────────────
+
+function loadHistoryFromStorage(): EmotionEntry[] {
     try {
         const stored = localStorage.getItem(GAIA_HISTORY_V1);
-        if (!stored) return [...defaultHistory];
+        if (!stored) return [];
 
         const parsed = JSON.parse(stored) as Array<Omit<EmotionEntry, 'timestamp'> & { timestamp: string }>;
         return parsed.map((entry) => ({
             ...entry,
-            timestamp: new Date(entry.timestamp)
+            timestamp: new Date(entry.timestamp),
         }));
     } catch {
-        return [...defaultHistory];
+        return [];
     }
-};
-
-/**
- * Persiste la entrada en Supabase (fire-and-forget).
- * Si falla, solo logea el error — el historial local sigue intacto.
- */
-async function persistToSupabase(entry: EmotionEntry): Promise<void> {
-    console.log('🟢 [DEBUG] persistToSupabase() INICIO — entry.mood:', entry.mood, 'entry.intensity:', entry.intensity);
-    try {
-        // Usar getSession (cache local) en vez de getUser (network call)
-        console.log('🔑 [DEBUG] Obteniendo sesión...');
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError) {
-            console.error('❌ Error obteniendo sesión:', sessionError.message);
-            return;
-        }
-
-        if (!session?.user) {
-            console.warn('⚠️ No hay sesión activa — entrada guardada solo localmente.');
-            return;
-        }
-
-        const userId = session.user.id;
-        console.log('🔑 [DEBUG] userId obtenido:', userId);
-
-        // Mapeo: EmotionEntry (local, 1-5) → campos de public.entries
-        const intensity = entry.intensity
-            ? Math.min(10, Math.max(1, entry.intensity * 2))
-            : 5;
-
-        const payload = {
-            user_id: userId,
-            emotion: entry.mood,
-            intensity,
-            place: null,
-            cause: null,
-            consequence: null,
-            note_brief: entry.text || null,
-            source: 'manual' as string,
-        };
-
-        console.log('📤 [DEBUG] Payload EXACTO para Supabase insert:', JSON.stringify(payload, null, 2));
-        console.log('📤 [DEBUG] Llamando emotionalMemoryService.saveEntry()...');
-
-        const result = await emotionalMemoryService.saveEntry(payload);
-
-        console.log('📤 [DEBUG] saveEntry() retornó:', result);
-
-        if (result) {
-            console.log('✅ Entrada guardada en Supabase (entries):', result.id);
-        } else {
-            console.error('❌ saveEntry devolvió null — revisa errores anteriores.');
-        }
-    } catch (err) {
-        console.error('❌ [DEBUG] Error inesperado al persistir en Supabase:', err);
-        if (err instanceof Error) {
-            console.error('❌ [DEBUG] Error name:', err.name, 'message:', err.message, 'stack:', err.stack);
-        }
-    }
-    console.log('🟢 [DEBUG] persistToSupabase() FIN');
 }
 
+function saveHistoryToStorage(entries: EmotionEntry[]): void {
+    try {
+        const serialized = entries.map((entry) => ({
+            ...entry,
+            timestamp: entry.timestamp.toISOString(),
+        }));
+        localStorage.setItem(GAIA_HISTORY_V1, JSON.stringify(serialized));
+    } catch (error) {
+        console.error('Failed to save history to localStorage:', error);
+    }
+}
+
+// ─── Hook principal ────────────────────────────────────────────────
+
 export const useHistory = () => {
-    const [entries, setEntries] = useState<EmotionEntry[]>(loadHistoryFromStorage);
+    const { user } = useAuth();
+    const [entries, setEntries] = useState<EmotionEntry[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+    const hasFetchedRef = useRef<string | null>(null); // Track which user we fetched for
 
+    // ── Efecto: cargar historial cuando cambia el usuario ──────────
     useEffect(() => {
-        try {
-            const serialized = entries.map((entry) => ({
-                ...entry,
-                timestamp: entry.timestamp.toISOString()
-            }));
-            localStorage.setItem(GAIA_HISTORY_V1, JSON.stringify(serialized));
-        } catch (error) {
-            console.error('Failed to save history to localStorage:', error);
+        // If no user, load from localStorage as fallback
+        if (!user) {
+            console.log('📂 [useHistory] Sin usuario — usando localStorage como fuente');
+            const local = loadHistoryFromStorage();
+            setEntries(local);
+            setLoadingHistory(false);
+            hasFetchedRef.current = null;
+            return;
         }
-    }, [entries]);
 
+        // Avoid re-fetching for the same user
+        if (hasFetchedRef.current === user.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function fetchFromSupabase() {
+            console.log('📥 [useHistory] Cargando historial desde Supabase para user:', user!.id);
+            setLoadingHistory(true);
+
+            try {
+                const dbEntries = await emotionalMemoryService.getEntries(user!.id);
+                
+                if (cancelled) return;
+
+                if (dbEntries.length > 0) {
+                    const uiEntries = dbEntries.map(dbEntryToUI);
+                    console.log(`📥 [useHistory] ${uiEntries.length} entradas cargadas desde Supabase`);
+                    setEntries(uiEntries);
+                    // Sync to localStorage as cache
+                    saveHistoryToStorage(uiEntries);
+                } else {
+                    console.log('📥 [useHistory] 0 entradas en Supabase — historial vacío');
+                    setEntries([]);
+                    saveHistoryToStorage([]);
+                }
+
+                hasFetchedRef.current = user!.id;
+            } catch (err) {
+                console.error('❌ [useHistory] Error cargando desde Supabase — fallback a localStorage:', err);
+                if (!cancelled) {
+                    const local = loadHistoryFromStorage();
+                    setEntries(local);
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingHistory(false);
+                }
+            }
+        }
+
+        fetchFromSupabase();
+
+        return () => { cancelled = true; };
+    }, [user]);
+
+    // ── Sincronizar localStorage cuando cambian las entries ────────
+    useEffect(() => {
+        if (!loadingHistory && entries.length >= 0) {
+            saveHistoryToStorage(entries);
+        }
+    }, [entries, loadingHistory]);
+
+    // ── addEntry: guarda local + Supabase ──────────────────────────
     const addEntry = (entrada?: EmotionEntryInput) => {
-        console.log('🟡 [DEBUG] addEntry() INVOCADO — entrada:', entrada);
+        console.log('🟡 [addEntry] INVOCADO — entrada:', entrada);
         if (!entrada) {
-            console.warn('🟡 [DEBUG] addEntry() — entrada es undefined/null, saliendo.');
+            console.warn('🟡 [addEntry] entrada es undefined/null, saliendo.');
             return;
         }
 
@@ -150,7 +190,6 @@ export const useHistory = () => {
             timestamp = new Date();
         }
 
-        // Ensure timestamp is valid to prevent toISOString() crashes
         if (isNaN(timestamp.getTime())) {
             timestamp = new Date();
         }
@@ -169,19 +208,35 @@ export const useHistory = () => {
             intensity,
         };
 
-        console.log('🟡 [DEBUG] safeEntry construido:', JSON.stringify({ ...safeEntry, timestamp: safeEntry.timestamp.toISOString() }, null, 2));
+        console.log('🟡 [addEntry] safeEntry construido:', safeEntry.mood, 'intensity:', safeEntry.intensity);
 
-        // 1. Guardar en localStorage (inmediato, síncrono)
+        // 1. Agregar al estado local inmediatamente
         setEntries((prev) => [safeEntry, ...prev]);
-        console.log('🟡 [DEBUG] localStorage actualizado');
 
-        // 2. Persistir en Supabase (fire-and-forget, no bloquea)
-        // Usamos .catch para asegurar que los errores nunca se pierdan
-        persistToSupabase(safeEntry).catch((err) => {
-            console.error('❌ [DEBUG] persistToSupabase promise rechazada:', err);
-        });
-        console.log('🟡 [DEBUG] persistToSupabase() lanzado (async)');
+        // 2. Persistir en Supabase (fire-and-forget)
+        if (user) {
+            const payload = uiEntryToDbPayload(safeEntry, user.id);
+            console.log('📤 [addEntry] Persistiendo en Supabase — userId:', user.id);
+
+            emotionalMemoryService.saveEntry(payload).then((result) => {
+                if (result) {
+                    console.log('✅ [addEntry] Entrada guardada en Supabase — id:', result.id);
+                    // Update the local entry ID with the Supabase UUID
+                    setEntries((prev) =>
+                        prev.map((e) =>
+                            e.id === safeEntry.id ? { ...e, id: result.id } : e
+                        )
+                    );
+                } else {
+                    console.error('❌ [addEntry] saveEntry devolvió null.');
+                }
+            }).catch((err) => {
+                console.error('❌ [addEntry] Error persistiendo en Supabase:', err);
+            });
+        } else {
+            console.warn('⚠️ [addEntry] Sin sesión — entrada guardada solo localmente.');
+        }
     };
 
-    return { entries, addEntry };
+    return { entries, addEntry, loadingHistory };
 };

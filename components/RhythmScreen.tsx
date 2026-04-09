@@ -9,7 +9,7 @@ const RhythmScreen: React.FC = () => {
 
   const handleStart = () => {
     completeOnboarding();
-    navigate('/chat');
+    navigate('/login');
   };
 
   return (

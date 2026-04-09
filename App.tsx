@@ -17,20 +17,44 @@ import InsightsScreen from './components/InsightsScreen';
 import LoginScreen from './components/LoginScreen';
 import { useHistory } from './state/useHistory';
 import { useOnboarding } from './state/useOnboarding';
+import { useAuth } from './state/AuthContext';
 
-// Componente para proteger rutas que requieren onboarding completado
+/**
+ * ProtectedRoute validates BOTH:
+ *  1. Supabase session (real authentication) — REQUIRED
+ *  2. Onboarding completed (localStorage flag) — OR Supabase session exists
+ *
+ * Logic:
+ *  - While loading the session → show nothing (prevent flash)
+ *  - If no Supabase user → redirect to /login
+ *  - If Supabase user exists → allow access (even without onboarding flag,
+ *    because a returning user who logs in directly should not be forced
+ *    through onboarding again)
+ */
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { user, loading } = useAuth();
   const { isOnboardingCompleted } = useOnboarding();
 
-  if (!isOnboardingCompleted) {
-    return <Navigate to="/" replace />;
+  // Still determining auth state — show a brief loading indicator
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-background-light dark:bg-background-dark">
+        <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
+      </div>
+    );
   }
 
+  // No authenticated user → send to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Authenticated user → allow access
   return children;
 };
 
 const App: React.FC = () => {
-  const { entries: history, addEntry } = useHistory();
+  const { entries: history, addEntry, loadingHistory } = useHistory();
 
   return (
     <div className="max-w-md mx-auto h-full shadow-2xl relative overflow-hidden bg-background-light dark:bg-background-dark">
@@ -47,7 +71,7 @@ const App: React.FC = () => {
         <Route path="/subscription-ended" element={<SubscriptionEndedScreen />} />
         <Route path="/menu" element={<ProtectedRoute><MenuScreen /></ProtectedRoute>} />
         <Route path="/checkin" element={<ProtectedRoute><CheckinScreen onSave={addEntry} /></ProtectedRoute>} />
-        <Route path="/history" element={<ProtectedRoute><HistoryScreen entries={history} /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><HistoryScreen entries={history} loading={loadingHistory} /></ProtectedRoute>} />
         <Route path="/insights" element={<ProtectedRoute><InsightsScreen entries={history} /></ProtectedRoute>} />
       </Routes>
     </div>

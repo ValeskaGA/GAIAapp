@@ -5,9 +5,10 @@ import { EmotionEntry } from '../types';
 
 interface HistoryScreenProps {
   entries: EmotionEntry[];
+  loading?: boolean;
 }
 
-const HistoryScreen: React.FC<HistoryScreenProps> = ({ entries = [] }) => {
+const HistoryScreen: React.FC<HistoryScreenProps> = ({ entries = [], loading = false }) => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('Todo');
 
@@ -50,7 +51,12 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ entries = [] }) => {
       </header>
       
       <main className="flex-1 px-4 py-4 space-y-4 overflow-y-auto pb-32 no-scrollbar">
-        {filteredEntries && filteredEntries.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <span className="material-symbols-outlined animate-spin text-primary text-4xl mb-4">progress_activity</span>
+            <p className="text-text-secondary dark:text-text-dark-secondary text-sm">Cargando tu historial...</p>
+          </div>
+        ) : filteredEntries && filteredEntries.length > 0 ? (
           filteredEntries.map((entry) => (
             <div 
               key={entry.id} 

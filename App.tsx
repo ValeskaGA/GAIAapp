@@ -15,6 +15,8 @@ import CheckinScreen from './components/CheckinScreen';
 import HistoryScreen from './components/HistoryScreen';
 import InsightsScreen from './components/InsightsScreen';
 import LoginScreen from './components/LoginScreen';
+import RegisterScreen from './components/RegisterScreen';
+import AuthCallbackHandler from './components/AuthCallbackHandler';
 import { useHistory } from './state/useHistory';
 import { useOnboarding } from './state/useOnboarding';
 import { useAuth } from './state/AuthContext';
@@ -58,10 +60,12 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto h-full shadow-2xl relative overflow-hidden bg-background-light dark:bg-background-dark">
+      <AuthCallbackHandler />
       <Routes>
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/intro" element={<WelcomeIntroScreen />} />
         <Route path="/login" element={<LoginScreen />} />
+        <Route path="/register" element={<RegisterScreen />} />
         <Route path="/ethics" element={<EthicsScreen />} />
         <Route path="/consent" element={<ConsentScreen />} />
         <Route path="/safety" element={<SafetyLimitsScreen />} />

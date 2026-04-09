@@ -5,12 +5,16 @@ import { useAuth } from '../state/AuthContext';
 
 const LoginScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, user, loading } = useAuth();
+  const { signIn, resendConfirmation, user, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Email confirmation specific state
+  const [showConfirmationNeeded, setShowConfirmationNeeded] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   // If already authenticated, skip login
   useEffect(() => {
@@ -22,6 +26,8 @@ const LoginScreen: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setShowConfirmationNeeded(false);
+    setResendSuccess(false);
     setIsLoading(true);
 
     const result = await signIn(email, password);
@@ -29,10 +35,27 @@ const LoginScreen: React.FC = () => {
     if (result.success) {
       navigate('/chat');
     } else {
+      if (result.isEmailNotConfirmed) {
+        setShowConfirmationNeeded(true);
+      }
       setError(result.error || 'Error al iniciar sesión.');
     }
 
     setIsLoading(false);
+  };
+
+  const handleResendConfirmation = async () => {
+    setResendLoading(true);
+    setResendSuccess(false);
+
+    const result = await resendConfirmation(email);
+    if (result.success) {
+      setResendSuccess(true);
+    } else {
+      setError(result.error || 'No se pudo reenviar el correo.');
+    }
+
+    setResendLoading(false);
   };
 
   return (
@@ -62,8 +85,49 @@ const LoginScreen: React.FC = () => {
           </p>
         </div>
 
-        {/* Error Message */}
-        {error && (
+        {/* Email Not Confirmed — Special Message */}
+        {showConfirmationNeeded && (
+          <div className="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 animate-sweep">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-500 text-xl mt-0.5">mark_email_unread</span>
+              <div className="flex-1">
+                <p className="text-amber-700 dark:text-amber-300 text-sm font-bold mb-1">
+                  Correo no confirmado
+                </p>
+                <p className="text-amber-600 dark:text-amber-400 text-xs font-medium leading-relaxed mb-3">
+                  Revisa tu bandeja de entrada (y spam) y haz clic en el enlace de confirmación que te enviamos.
+                </p>
+                {resendSuccess ? (
+                  <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 text-xs font-bold">
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    ¡Correo reenviado! Revisa tu bandeja.
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleResendConfirmation}
+                    disabled={resendLoading}
+                    className="text-amber-700 dark:text-amber-300 text-xs font-bold underline hover:opacity-80 transition-opacity disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {resendLoading ? (
+                      <>
+                        <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                        Reenviando...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-sm">forward_to_inbox</span>
+                        Reenviar correo de confirmación
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Generic Error Message (shown only when NOT email-confirmation error) */}
+        {error && !showConfirmationNeeded && (
           <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium text-center animate-sweep">
             <span className="material-symbols-outlined text-base align-middle mr-1">error</span>
             {error}
@@ -142,7 +206,7 @@ const LoginScreen: React.FC = () => {
       <div className="mt-8 flex flex-col items-center gap-2 z-10">
         <p className="text-[#756487] dark:text-gray-400 text-sm font-medium">¿No tienes una cuenta?</p>
         <button
-          onClick={() => navigate('/intro')}
+          onClick={() => navigate('/register')}
           className="text-primary font-extrabold text-base hover:opacity-80 transition-opacity"
         >
           Crear una cuenta

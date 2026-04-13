@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../state/AuthContext';
 
 const MenuScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [showConfigModal, setShowConfigModal] = useState(false);
 
   // Estado para el nombre del perfil con persistencia
@@ -106,7 +108,12 @@ const MenuScreen: React.FC = () => {
 
       <div className="p-6 mt-auto">
         <button
-          onClick={() => navigate('/')}
+          onClick={async () => {
+            await signOut();
+            // Clear any user-specific local state so the previous account doesn't linger
+            localStorage.removeItem('gaia_user_name');
+            navigate('/login', { replace: true });
+          }}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-text-secondary hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition-colors"
         >
           <span className="material-symbols-outlined">logout</span>

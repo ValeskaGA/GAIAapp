@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../state/AuthContext';
 
 const LoginScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, resendConfirmation, user, loading } = useAuth();
+  const { signIn, resendConfirmation } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,12 +16,9 @@ const LoginScreen: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
-  // If already authenticated, skip login
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/chat', { replace: true });
-    }
-  }, [loading, user, navigate]);
+  // Note: We intentionally do NOT auto-redirect to /chat when a session exists.
+  // This allows users who just logged out to switch accounts.
+  // The AuthCallbackHandler handles redirecting fresh sign-ins from public pages.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

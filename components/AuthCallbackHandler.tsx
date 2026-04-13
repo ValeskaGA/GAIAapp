@@ -23,11 +23,21 @@ const AuthCallbackHandler: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const previousUser = useRef<string | null>(null);
+  const hasMounted = useRef(false);
 
   useEffect(() => {
     if (loading) return;
 
-    // Detect transition: no user → user (= fresh authentication, e.g. email confirmation callback)
+    if (!hasMounted.current) {
+      // First render: just record the current user state without redirecting.
+      // This prevents auto-redirecting a user who just logged out and navigated
+      // to /login but still has a brief session during cleanup.
+      previousUser.current = user?.id ?? null;
+      hasMounted.current = true;
+      return;
+    }
+
+    // Detect transition: no user → user (= fresh authentication, e.g. email confirmation callback or login)
     if (user && !previousUser.current) {
       const isOnPublicPage = ['/', '/login', '/register', '/intro', '/ethics', '/consent', '/safety', '/rhythm'].includes(location.pathname);
 
@@ -45,3 +55,4 @@ const AuthCallbackHandler: React.FC = () => {
 };
 
 export default AuthCallbackHandler;
+

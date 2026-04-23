@@ -1,72 +1,33 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { geminiService } from '../services/geminiService';
-import { Message, ModelType } from '../types';
+import { useChatContext } from '../state/ChatContext';
+import { ModelType } from '../types';
 
 const ChatScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'model',
-      text: 'Hola. Soy GAIA, tu espacio de tranquilidad. Estoy aquí para escucharte sin juicios. ¿Cómo te sientes hoy?',
-      timestamp: new Date(),
-    }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [modelType, setModelType] = useState<ModelType>(ModelType.PRO);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const {
+    messages,
+    input,
+    isLoading,
+    modelType,
+    pendingSuggestion,
+    setInput,
+    sendMessage,
+    toggleModel,
+    acceptSuggestion,
+    declineSuggestion,
+  } = useChatContext();
 
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, pendingSuggestion]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      text: input,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      let modelResponseText = '';
-      const responseStream = geminiService.sendMessageStream(input);
-
-      const modelMessageId = (Date.now() + 1).toString();
-      setMessages(prev => [...prev, {
-        id: modelMessageId,
-        role: 'model',
-        text: '',
-        timestamp: new Date(),
-      }]);
-
-      for await (const chunk of responseStream) {
-        modelResponseText += chunk;
-        setMessages(prev => prev.map(msg =>
-          msg.id === modelMessageId ? { ...msg, text: modelResponseText } : msg
-        ));
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const toggleModel = () => {
-    const nextModel = modelType === ModelType.PRO ? ModelType.FLASH : ModelType.PRO;
-    setModelType(nextModel);
-    geminiService.startNewChat(nextModel);
+    await sendMessage(input);
   };
 
   return (
@@ -123,6 +84,36 @@ const ChatScreen: React.FC = () => {
                 </div>
               </div>
             ))}
+
+            {/* ── Suggestion Bubble (auto-save OFF) ────────────────── */}
+            {pendingSuggestion && (
+              <div className="flex items-end gap-3 animate-sweep">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+                  <span className="material-symbols-outlined text-sm">spa</span>
+                </div>
+                <div className="flex flex-col gap-1 max-w-[80%]">
+                  <div className="p-4 rounded-2xl rounded-bl-none bg-primary/5 dark:bg-primary/10 border border-primary/15 text-[15px] leading-relaxed text-text-main dark:text-text-dark-main">
+                    <p>🌿 Esto podría decir algo importante sobre lo que estás viviendo… ¿quieres guardarlo?</p>
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={acceptSuggestion}
+                        className="px-4 py-1.5 rounded-full bg-primary text-white text-sm font-bold hover:bg-purple-700 active:scale-95 transition-all"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={declineSuggestion}
+                        className="px-4 py-1.5 rounded-full border border-primary/20 text-primary text-sm font-bold hover:bg-primary/5 active:scale-95 transition-all"
+                      >
+                        Ahora no
+                      </button>
+                    </div>
+                    <p className="mt-2 text-[11px] opacity-50">No se guardará nada sin tu decisión.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div ref={chatEndRef} />
           </div>
 

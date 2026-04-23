@@ -12,6 +12,8 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   resendConfirmation: (email: string) => Promise<AuthResult>;
+  /** Register a callback to run on sign out (e.g., clear chat state) */
+  onSignOut: (callback: () => void) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +64,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const signOutCallbacksRef = React.useRef<Array<() => void>>([]);
+
+  const onSignOut = React.useCallback((callback: () => void) => {
+    signOutCallbacksRef.current.push(callback);
+  }, []);
 
   useEffect(() => {
     // 1. Restore existing session on mount
@@ -151,11 +158,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signOut = async () => {
+    // Run registered cleanup callbacks (e.g., clear chat)
+    signOutCallbacksRef.current.forEach(cb => cb());
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resendConfirmation }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resendConfirmation, onSignOut }}>
       {children}
     </AuthContext.Provider>
   );

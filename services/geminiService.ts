@@ -63,6 +63,11 @@ GAIA: "Parece que la autonomía tiene un valor muy profundo para ti. Imaginar un
     return this.chat;
   }
 
+  /** Resets the chat session so the next message starts a fresh conversation */
+  resetChat() {
+    this.chat = null;
+  }
+
   async sendMessage(message: string): Promise<string> {
     if (!this.chat) {
       await this.startNewChat(this.currentModel);

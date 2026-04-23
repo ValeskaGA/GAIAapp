@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import WelcomeScreen from './components/WelcomeScreen';
 import WelcomeIntroScreen from './components/WelcomeIntroScreen';
@@ -20,6 +20,7 @@ import AuthCallbackHandler from './components/AuthCallbackHandler';
 import { useHistory } from './state/useHistory';
 import { useOnboarding } from './state/useOnboarding';
 import { useAuth } from './state/AuthContext';
+import { useChatContext } from './state/ChatContext';
 
 /**
  * ProtectedRoute validates BOTH:
@@ -57,6 +58,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 const App: React.FC = () => {
   const { entries: history, addEntry, loadingHistory } = useHistory();
+  const { registerAddEntry } = useChatContext();
+
+  // Register addEntry so ChatContext can save emotional moments
+  useEffect(() => {
+    registerAddEntry(addEntry);
+  }, [addEntry, registerAddEntry]);
 
   return (
     <div className="max-w-md mx-auto h-full shadow-2xl relative overflow-hidden bg-background-light dark:bg-background-dark">

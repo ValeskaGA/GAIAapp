@@ -2,6 +2,48 @@
 import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
 import { ModelType } from "../types";
 
+// ─── Farewell fallback (avoid unnecessary API calls) ─────────────
+const SIMPLE_FAREWELL_PATTERNS: string[] = [
+  'adiós', 'adios', 'chao', 'bye', 'hasta luego', 'hasta mañana',
+  'nos vemos', 'me voy', 'ya me voy', 'me tengo que ir',
+  'me iré a dormir', 'me ire a dormir', 'me voy a dormir',
+  'voy a dormir', 'buenas noches', 'quiero descansar',
+  'necesito descansar', 'voy a descansar',
+  'no quiero seguir escribiendo', 'no quiero hablar más',
+  'hablamos', 'hablamos después', 'cuídate',
+];
+
+const FAREWELL_RESPONSES: string[] = [
+  'Que descanses. Estaré aquí cuando quieras volver.',
+  'Descansa bien. Mañana es otro día.',
+  'Cuídate mucho. Aquí estaré.',
+  'Que tengas una buena noche. Aquí me encuentras cuando quieras.',
+  'Descansa. Fue bueno acompañarte hoy.',
+];
+
+function isFarewellMessage(text: string): boolean {
+  const normalized = text.toLowerCase().trim();
+  return SIMPLE_FAREWELL_PATTERNS.some(p => normalized.includes(p));
+}
+
+function getRandomFarewellResponse(): string {
+  return FAREWELL_RESPONSES[Math.floor(Math.random() * FAREWELL_RESPONSES.length)];
+}
+
+// ─── Error helpers ───────────────────────────────────────────────
+function getUserFriendlyError(error: any): string {
+  const status = error?.status || error?.code;
+  if (status === 429) {
+    return 'GAIA necesita un momento para recuperar energía. Intenta de nuevo en unos minutos. 💜';
+  }
+  if (status === 503 || status === 500) {
+    return 'El servicio está temporalmente inestable. Intenta de nuevo en un momento.';
+  }
+  return 'Hubo un problema al conectar con GAIA. Intenta de nuevo en unos segundos.';
+}
+
+// ─── Service ─────────────────────────────────────────────────────
+
 export class GeminiService {
   private chat: Chat | null = null;
   private currentModel: ModelType = ModelType.PRO;
@@ -33,17 +75,23 @@ Reglas importantes:
 1. Responde en un tono humano y cercano.
 2. No entregues diagnósticos clínicos.
 3. No afirmes que sabes exactamente cómo se siente la persona.
-4. Invita suavemente a la reflexión.
-5. Haz preguntas abiertas cuando sea útil.
-6. Mantén un tono tranquilo y seguro.
-7. Cuando el usuario comparta algo emocional, primero refleja brevemente la emoción o necesidad que percibas, y luego haz una pregunta abierta. No empieces directamente con una pregunta.
+4. Mantén un tono tranquilo y seguro.
+5. No sobreanalices frases simples. No interpretes cada mensaje con excesiva profundidad.
+6. Evita repetir muletillas como "parece que…" o "es como si…" en cada respuesta.
 
-Tu rol es acompañar, no resolver la vida del usuario.
+Cuándo hacer preguntas y cuándo no:
+- Si el usuario comparte una emoción por primera vez (ej: "estoy triste"), puedes hacer UNA pregunta suave para acompañar.
+- Si el usuario ya explicó su situación con contexto (ej: emoción + causa), puedes validar sin preguntar.
+- Si el usuario ha enviado 2-3 mensajes expresándose, no es necesario preguntar más. Acompaña, valida o cierra suavemente.
+- Si el usuario responde con algo corto o ambiguo (ej: "no sé", "puede ser"), puedes hacer una pregunta suave para abrir espacio.
+- Máximo 1 pregunta por respuesta, y no en todas las respuestas.
+- Alterna entre: validar, reflejar emoción, acompañar en silencio, y preguntar solo cuando aporte algo nuevo.
 
-Cuando alguien comparta algo emocional:
-- refleja primero la emoción o necesidad que percibas en sus palabras
-- ayuda a poner en palabras lo que podría estar sintiendo
-- luego invita a explorar con una pregunta abierta
+REGLA DE CIERRE — MUY IMPORTANTE:
+Si el usuario dice cosas como "me voy a dormir", "adiós", "chao", "no quiero seguir escribiendo", "hasta mañana", "quiero descansar", "me iré a dormir", o cualquier forma de despedida o cierre:
+- Respeta el cierre. NO hagas nuevas preguntas.
+- Responde de forma breve y cálida (1-2 frases máximo).
+- Permite que la conversación termine naturalmente.
 
 Si alguien menciona crisis graves (daño a sí mismo, suicidio, etc):
 - responde con empatía
@@ -55,9 +103,19 @@ Estilo de respuesta:
 - lenguaje simple
 - sin tecnicismos
 
-Ejemplo de estilo:
-Usuario: "No quiero volver a tener jefes."
-GAIA: "Parece que la autonomía tiene un valor muy profundo para ti. Imaginar una vida donde decides tu propio rumbo puede sentirse muy liberador. ¿Qué es lo que más te atrae de esa independencia?"`,
+Ejemplos de estilo:
+
+Usuario: "Estoy triste."
+GAIA: "Lamento que estés pasando por eso. ¿Hay algo en particular que te tenga así?"
+
+Usuario: "Estoy triste por una pelea con mi pareja, me dijo cosas horribles."
+GAIA: "Eso duele mucho, especialmente cuando viene de alguien cercano. Tiene sentido que te sientas así."
+
+Usuario: "No sé"
+GAIA: "No pasa nada si no tienes claridad ahora. ¿Hay algo que te ronde por la mente, aunque sea pequeño?"
+
+Usuario: "Me iré a dormir"
+GAIA: "Que descanses. Estaré aquí cuando quieras volver."`,
       },
     });
     return this.chat;
@@ -69,6 +127,11 @@ GAIA: "Parece que la autonomía tiene un valor muy profundo para ti. Imaginar un
   }
 
   async sendMessage(message: string): Promise<string> {
+    // Farewell fallback: skip API call for simple goodbyes
+    if (isFarewellMessage(message)) {
+      return getRandomFarewellResponse();
+    }
+
     if (!this.chat) {
       await this.startNewChat(this.currentModel);
     }
@@ -76,14 +139,20 @@ GAIA: "Parece que la autonomía tiene un valor muy profundo para ti. Imaginar un
     try {
       const response: GenerateContentResponse = await this.chat!.sendMessage({ message });
       return response.text || "Lo siento, tuve un problema procesando eso. ¿Podrías repetirlo?";
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gemini API Error:", error);
       console.error("Detalles:", JSON.stringify(error, null, 2));
-      return "Hubo un error al conectar con GAIA. Por favor, intenta de nuevo.";
+      return getUserFriendlyError(error);
     }
   }
 
   async *sendMessageStream(message: string) {
+    // Farewell fallback: skip API call for simple goodbyes
+    if (isFarewellMessage(message)) {
+      yield getRandomFarewellResponse();
+      return;
+    }
+
     if (!this.chat) {
       await this.startNewChat(this.currentModel);
     }
@@ -94,10 +163,10 @@ GAIA: "Parece que la autonomía tiene un valor muy profundo para ti. Imaginar un
         const c = chunk as GenerateContentResponse;
         yield c.text || "";
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gemini API Stream Error:", error);
       console.error("Detalles:", JSON.stringify(error, null, 2));
-      yield "Error de conexión.";
+      yield getUserFriendlyError(error);
     }
   }
 }

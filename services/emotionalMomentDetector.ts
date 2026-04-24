@@ -51,9 +51,21 @@ const EMOTION_KEYWORDS: Record<string, string> = {
   'enojado': 'Inquieto/a',
   'enojada': 'Inquieto/a',
   'enojo': 'Inquieto/a',
+  'enfado': 'Inquieto/a',
+  'enfadado': 'Inquieto/a',
+  'enfadada': 'Inquieto/a',
+  'irritado': 'Inquieto/a',
+  'irritada': 'Inquieto/a',
+  'irritación': 'Inquieto/a',
   'rabia': 'Inquieto/a',
   'molesto': 'Inquieto/a',
   'molesta': 'Inquieto/a',
+  'harto': 'Inquieto/a',
+  'harta': 'Inquieto/a',
+  'impotencia': 'Inquieto/a',
+  'agobio': 'Inquieto/a',
+  'agobiado': 'Inquieto/a',
+  'agobiada': 'Inquieto/a',
   'solo': 'Un poco bajo/a',
   'sola': 'Un poco bajo/a',
   'soledad': 'Un poco bajo/a',
@@ -75,6 +87,11 @@ const EMOTION_KEYWORDS: Record<string, string> = {
   'abrumada': 'Inquieto/a',
   'confundido': 'Inquieto/a',
   'confundida': 'Inquieto/a',
+  'preocupado': 'Ansioso/a',
+  'preocupada': 'Ansioso/a',
+  'preocupación': 'Ansioso/a',
+  'desanimado': 'Un poco bajo/a',
+  'desanimada': 'Un poco bajo/a',
   'feliz': 'Feliz',
   'felicidad': 'Feliz',
   'contento': 'Feliz',
@@ -102,13 +119,15 @@ const EMOTION_KEYWORDS: Record<string, string> = {
 
 const CAUSE_PATTERNS: string[] = [
   'porque', 'por culpa', 'debido a', 'me pasó', 'me pasa',
-  'en el trabajo', 'en la oficina', 'con mi jefe', 'con mi pareja',
+  'el trabajo', 'mi trabajo', 'en el trabajo', 'en la oficina',
+  'mi jefe', 'con mi jefe', 'los compañeros', 'mis compañeros',
+  'con mi pareja', 'el ambiente', 'ambiente laboral',
   'con mi familia', 'con mi mamá', 'con mi papá', 'con mi hermano',
   'con mi hermana', 'con mi hijo', 'con mi hija', 'con mis amigos',
   'hoy me', 'ayer me', 'nos peleamos', 'me dijo que', 'me hizo sentir',
   'la relación', 'el dinero', 'la plata', 'las deudas', 'la universidad',
   'el estudio', 'los exámenes', 'la escuela', 'el colegio',
-  'mi salud', 'el médico', 'el doctor',
+  'mi salud', 'el médico', 'el doctor', 'la casa', 'mi casa',
 ];
 
 const CONSEQUENCE_PATTERNS: string[] = [
@@ -133,6 +152,9 @@ const FAREWELL_PATTERNS: string[] = [
   'buenas noches', 'hablamos después', 'te cuento luego',
   'me tengo que ir', 'ya me voy', 'hasta mañana',
   'cuídate', 'gracias gaia', 'eso era todo', 'era eso',
+  'me iré a dormir', 'me voy a dormir', 'voy a dormir',
+  'no quiero seguir escribiendo', 'no quiero hablar más',
+  'quiero descansar', 'necesito descansar', 'voy a descansar',
 ];
 
 // ─── Funciones de detección ────────────────────────────────────────
@@ -242,11 +264,14 @@ export function analyzeMessage(text: string): MessageAnalysis {
 }
 
 /**
- * Evalúa una ventana de hasta 4 mensajes relevantes.
+ * Evalúa una ventana de hasta 3 mensajes relevantes.
  * Retorna un EmotionalMoment si hay emoción + causa/contexto suficiente.
  * Retorna null si no hay suficiente material.
  */
-export function evaluateWindow(analyses: MessageAnalysis[]): EmotionalMoment | null {
+export function evaluateWindow(
+  analyses: MessageAnalysis[],
+  isFarewell: boolean = false,
+): EmotionalMoment | null {
   if (analyses.length === 0) return null;
 
   // Aggregate signals from the entire window
@@ -276,16 +301,17 @@ export function evaluateWindow(analyses: MessageAnalysis[]): EmotionalMoment | n
     }
   }
 
-  // Must have emotion + at least cause/context
-  if (!dominantEmotion || !bestCause) {
-    return null;
-  }
+  // Must have emotion; cause is required unless it's a farewell
+  if (!dominantEmotion) return null;
+  if (!bestCause && !isFarewell) return null;
 
-  const noteBrief = buildNoteBrief(dominantEmotion, bestCause, bestConsequence, bestPattern);
+  // For farewell without explicit cause, use a generic context
+  const effectiveCause = bestCause || 'la conversación de hoy';
+  const noteBrief = buildNoteBrief(dominantEmotion, effectiveCause, bestConsequence, bestPattern);
 
   return {
     emotion: dominantEmotion,
-    cause: bestCause,
+    cause: effectiveCause,
     noteBrief,
     detectedAt: new Date(),
   };

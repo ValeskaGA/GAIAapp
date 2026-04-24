@@ -146,23 +146,34 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const analysis = analyzeMessage(userText);
     const detectedFarewell = analysis.isFarewell;
 
+    console.log('🔍 [EmotionalDetection] analysis:', JSON.stringify(analysis));
+
     if (analysis.isRelevant) {
-      // Keep max 4 in window (FIFO)
+      // Keep max 3 in window (FIFO)
       analysisWindowRef.current = [
-        ...analysisWindowRef.current.slice(-3),
+        ...analysisWindowRef.current.slice(-2),
         analysis,
       ];
     }
 
-    const windowFull = analysisWindowRef.current.length >= 4;
+    const updatedWindow = analysisWindowRef.current;
+    const windowFull = updatedWindow.length >= 3;
+    const shouldEvaluate = windowFull || detectedFarewell;
 
-    if (windowFull || detectedFarewell) {
-      const moment = evaluateWindow(analysisWindowRef.current);
+    console.log('🔍 [EmotionalDetection] updatedWindow:', JSON.stringify(updatedWindow));
+    console.log('🔍 [EmotionalDetection] windowFull:', windowFull, '| isFarewell:', detectedFarewell, '| shouldEvaluate:', shouldEvaluate);
+
+    if (shouldEvaluate) {
+      const moment = evaluateWindow(updatedWindow, detectedFarewell);
+
+      console.log('🔍 [EmotionalDetection] moment:', JSON.stringify(moment));
+      console.log('🔍 [EmotionalDetection] autoSaveEnabled:', autoSaveRef.current);
 
       if (moment && !isDuplicate(moment, savedMomentsRef.current)) {
         // Delay so it appears after GAIA's streaming response
         setTimeout(() => handleDetectedMoment(moment), 800);
       } else {
+        console.log('🔍 [EmotionalDetection] No moment generated or duplicate. Resetting:', windowFull);
         // No valid moment or duplicate — reset window if full
         if (windowFull) {
           analysisWindowRef.current = [];

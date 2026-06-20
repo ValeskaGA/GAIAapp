@@ -15,6 +15,9 @@ export interface EmotionEntry {
   text: string;
   timestamp: Date;
   intensity?: number; // Escala 1-5 para el gráfico
+  cause?: string | null;
+  consequence?: string | null;
+  source?: string | null;
 }
 
 export enum ModelType {

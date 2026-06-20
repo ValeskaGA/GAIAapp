@@ -20,6 +20,7 @@ export interface MessageAnalysis {
 export interface EmotionalMoment {
   emotion: string;
   cause: string;
+  consequence: string | null;
   noteBrief: string;
   detectedAt: Date;
 }
@@ -29,133 +30,13 @@ export interface SavedMoment extends EmotionalMoment {
   discarded: boolean;
 }
 
-// ─── Keywords por categoría (español) ──────────────────────────────
-
-const EMOTION_KEYWORDS: Record<string, string> = {
-  // keyword → emoción normalizada (mapea a EMOTION_ICON_MAP en useHistory)
-  'triste': 'Triste',
-  'tristeza': 'Triste',
-  'llorar': 'Triste',
-  'lloro': 'Triste',
-  'ansioso': 'Ansioso/a',
-  'ansiosa': 'Ansioso/a',
-  'ansiedad': 'Ansioso/a',
-  'nervioso': 'Ansioso/a',
-  'nerviosa': 'Ansioso/a',
-  'angustia': 'Ansioso/a',
-  'angustiado': 'Ansioso/a',
-  'angustiada': 'Ansioso/a',
-  'frustrado': 'Inquieto/a',
-  'frustrada': 'Inquieto/a',
-  'frustración': 'Inquieto/a',
-  'enojado': 'Inquieto/a',
-  'enojada': 'Inquieto/a',
-  'enojo': 'Inquieto/a',
-  'enfado': 'Inquieto/a',
-  'enfadado': 'Inquieto/a',
-  'enfadada': 'Inquieto/a',
-  'irritado': 'Inquieto/a',
-  'irritada': 'Inquieto/a',
-  'irritación': 'Inquieto/a',
-  'rabia': 'Inquieto/a',
-  'molesto': 'Inquieto/a',
-  'molesta': 'Inquieto/a',
-  'harto': 'Inquieto/a',
-  'harta': 'Inquieto/a',
-  'impotencia': 'Inquieto/a',
-  'agobio': 'Inquieto/a',
-  'agobiado': 'Inquieto/a',
-  'agobiada': 'Inquieto/a',
-  'solo': 'Un poco bajo/a',
-  'sola': 'Un poco bajo/a',
-  'soledad': 'Un poco bajo/a',
-  'vacío': 'Un poco bajo/a',
-  'vacía': 'Un poco bajo/a',
-  'miedo': 'Ansioso/a',
-  'culpa': 'Un poco bajo/a',
-  'culpable': 'Un poco bajo/a',
-  'agotado': 'Cansado/a',
-  'agotada': 'Cansado/a',
-  'cansado': 'Cansado/a',
-  'cansada': 'Cansado/a',
-  'cansancio': 'Cansado/a',
-  'agotamiento': 'Cansado/a',
-  'estresado': 'Inquieto/a',
-  'estresada': 'Inquieto/a',
-  'estrés': 'Inquieto/a',
-  'abrumado': 'Inquieto/a',
-  'abrumada': 'Inquieto/a',
-  'confundido': 'Inquieto/a',
-  'confundida': 'Inquieto/a',
-  'preocupado': 'Ansioso/a',
-  'preocupada': 'Ansioso/a',
-  'preocupación': 'Ansioso/a',
-  'desanimado': 'Un poco bajo/a',
-  'desanimada': 'Un poco bajo/a',
-  'feliz': 'Feliz',
-  'felicidad': 'Feliz',
-  'contento': 'Feliz',
-  'contenta': 'Feliz',
-  'alegría': 'Feliz',
-  'alegre': 'Feliz',
-  'tranquilo': 'En calma',
-  'tranquila': 'En calma',
-  'en paz': 'En calma',
-  'calma': 'Calma',
-  'esperanza': 'En calma',
-  'agradecido': 'Feliz',
-  'agradecida': 'Feliz',
-  'bien': 'En calma',
-  'mal': 'Un poco bajo/a',
-  'terrible': 'Triste',
-  'fatal': 'Un poco bajo/a',
-  'deprimido': 'Triste',
-  'deprimida': 'Triste',
-  'inseguro': 'Ansioso/a',
-  'insegura': 'Ansioso/a',
-  'desmotivado': 'Cansado/a',
-  'desmotivada': 'Cansado/a',
-};
-
-const CAUSE_PATTERNS: string[] = [
-  'porque', 'por culpa', 'debido a', 'me pasó', 'me pasa',
-  'el trabajo', 'mi trabajo', 'en el trabajo', 'en la oficina',
-  'mi jefe', 'con mi jefe', 'los compañeros', 'mis compañeros',
-  'con mi pareja', 'el ambiente', 'ambiente laboral',
-  'con mi familia', 'con mi mamá', 'con mi papá', 'con mi hermano',
-  'con mi hermana', 'con mi hijo', 'con mi hija', 'con mis amigos',
-  'hoy me', 'ayer me', 'nos peleamos', 'me dijo que', 'me hizo sentir',
-  'la relación', 'el dinero', 'la plata', 'las deudas', 'la universidad',
-  'el estudio', 'los exámenes', 'la escuela', 'el colegio',
-  'mi salud', 'el médico', 'el doctor', 'la casa', 'mi casa',
-];
-
-const CONSEQUENCE_PATTERNS: string[] = [
-  'no puedo dormir', 'no duermo', 'no como', 'no quiero comer',
-  'lloro', 'me paralizo', 'exploto', 'me alejo', 'me aíslo',
-  'me cuesta concentrar', 'no me concentro', 'me duele',
-  'no tengo energía', 'no tengo ganas', 'no quiero hacer nada',
-  'me afecta', 'me está afectando',
-];
-
-const PATTERN_KEYWORDS: string[] = [
-  'siempre que', 'cada vez que', 'últimamente', 'otra vez',
-  'como siempre', 'me pasa seguido', 'es la tercera vez',
-  'de nuevo', 'todo el tiempo', 'nunca cambia', 'sigue pasando',
-  'ya no sé qué hacer', 'ya estoy harto', 'ya estoy harta',
-  'siempre es lo mismo', 'siempre pasa', 'no es la primera vez',
-];
-
-const FAREWELL_PATTERNS: string[] = [
-  'chao', 'me voy', 'gracias por escuchar', 'hablamos',
-  'nos vemos', 'hasta luego', 'bye', 'adiós', 'adios',
-  'buenas noches', 'hablamos después', 'te cuento luego',
-  'me tengo que ir', 'ya me voy', 'hasta mañana',
-  'cuídate', 'gracias gaia', 'eso era todo', 'era eso',
-  'me iré a dormir', 'me voy a dormir', 'voy a dormir',
-  'no quiero seguir escribiendo', 'no quiero hablar más',
-  'quiero descansar', 'necesito descansar', 'voy a descansar',
-];
+import {
+  EMOTION_KEYWORDS,
+  CAUSE_PATTERNS,
+  CONSEQUENCE_PATTERNS,
+  PATTERN_KEYWORDS,
+  FAREWELL_PATTERNS,
+} from "./emotionalKeywords";
 
 // ─── Funciones de detección ────────────────────────────────────────
 
@@ -312,6 +193,7 @@ export function evaluateWindow(
   return {
     emotion: dominantEmotion,
     cause: effectiveCause,
+    consequence: bestConsequence,
     noteBrief,
     detectedAt: new Date(),
   };

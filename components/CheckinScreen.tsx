@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EmotionEntry } from '../types';
+import { analyzeMessage } from '../services/emotionalMomentDetector';
 
 interface CheckinScreenProps {
   onSave: (entry: EmotionEntry) => void;
@@ -40,6 +41,11 @@ const CheckinScreen: React.FC<CheckinScreenProps> = ({ onSave }) => {
     // Find matching emotion to get icon and color, default to a neutral one for custom moods
     const matchedPredefined = predefinedEmotions.find(e => e.label === selectedMoodLabel);
 
+    // Analizar las notas para extraer causa y consecuencia (lógica 'manual')
+    const analysis = notes.trim() ? analyzeMessage(notes) : null;
+    const detectedCause = analysis?.cause ?? null;
+    const detectedConsequence = analysis?.consequence ?? null;
+
     const entry: EmotionEntry = {
       id: Date.now().toString(),
       date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ' • ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
@@ -47,7 +53,10 @@ const CheckinScreen: React.FC<CheckinScreenProps> = ({ onSave }) => {
       icon: matchedPredefined?.icon || 'mood',
       color: matchedPredefined?.color || 'bg-gaia-lavender-50 text-primary',
       text: notes || 'Sin notas adicionales.',
-      timestamp: new Date()
+      timestamp: new Date(),
+      cause: detectedCause,
+      consequence: detectedConsequence,
+      source: 'manual',
     };
     onSave(entry);
     navigate('/history');

@@ -88,6 +88,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         mood: moment.emotion,
         text: moment.noteBrief,
         intensity: 3,
+        cause: moment.cause,
+        consequence: moment.consequence,
+        source: 'chat',
       });
       console.log('🌿 [ChatContext] Momento emocional guardado:', moment.emotion, '—', moment.noteBrief);
     } else {

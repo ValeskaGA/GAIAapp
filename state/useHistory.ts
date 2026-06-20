@@ -13,17 +13,17 @@ const GAIA_HISTORY_V1 = 'gaia_emotion_history_v1';
 
 // ─── Mapeo de emociones a iconos y colores ─────────────────────────
 const EMOTION_ICON_MAP: Record<string, { icon: string; color: string }> = {
-    'En calma':       { icon: 'sentiment_satisfied',  color: 'bg-purple-50 text-primary' },
-    'Feliz':          { icon: 'sentiment_satisfied',  color: 'bg-purple-100 text-primary' },
-    'Cansado/a':      { icon: 'bedtime',              color: 'bg-orange-100 text-orange-500' },
-    'Un poco bajo/a': { icon: 'trending_down',        color: 'bg-blue-50 text-blue-500' },
-    'Inquieto/a':     { icon: 'air',                  color: 'bg-yellow-50 text-yellow-600' },
-    'Calma':          { icon: 'spa',                   color: 'bg-indigo-100 text-indigo-500' },
-    'Triste':         { icon: 'sentiment_dissatisfied', color: 'bg-blue-100 text-blue-500' },
-    'Ansioso/a':      { icon: 'psychology',            color: 'bg-red-50 text-red-400' },
+    'En calma': { icon: 'sentiment_satisfied', color: 'bg-purple-50 text-primary' },
+    'Feliz': { icon: 'sentiment_satisfied', color: 'bg-purple-100 text-primary' },
+    'Cansado/a': { icon: 'bedtime', color: 'bg-orange-100 text-orange-500' },
+    'Un poco bajo/a': { icon: 'trending_down', color: 'bg-blue-50 text-blue-500' },
+    'Inquieto/a': { icon: 'air', color: 'bg-yellow-50 text-yellow-600' },
+    'Calma': { icon: 'spa', color: 'bg-indigo-100 text-indigo-500' },
+    'Triste': { icon: 'sentiment_dissatisfied', color: 'bg-blue-100 text-blue-500' },
+    'Ansioso/a': { icon: 'psychology', color: 'bg-red-50 text-red-400' },
 };
 
-const DEFAULT_ICON  = 'mood';
+const DEFAULT_ICON = 'mood';
 const DEFAULT_COLOR = 'bg-purple-100 text-primary';
 
 // ─── Conversiones DB ↔ UI ──────────────────────────────────────────
@@ -39,8 +39,8 @@ function dbEntryToUI(db: EmotionalEntry): EmotionEntry {
     return {
         id: db.id,
         date: createdAt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
-              + ' • '
-              + createdAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            + ' • '
+            + createdAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         mood: db.emotion,
         icon: mapped?.icon ?? DEFAULT_ICON,
         color: mapped?.color ?? DEFAULT_COLOR,
@@ -63,10 +63,10 @@ function uiEntryToDbPayload(entry: EmotionEntry, userId: string) {
         emotion: entry.mood,
         intensity,
         place: null,
-        cause: null,
-        consequence: null,
+        cause: entry.cause || null,
+        consequence: entry.consequence || null,
         note_brief: entry.text || null,
-        source: 'manual' as string,
+        source: (entry.source || 'manual') as string,
     };
 }
 
@@ -132,7 +132,7 @@ export const useHistory = () => {
 
             try {
                 const dbEntries = await emotionalMemoryService.getEntries(user!.id);
-                
+
                 if (cancelled) return;
 
                 if (dbEntries.length > 0) {
@@ -206,6 +206,9 @@ export const useHistory = () => {
             text: entrada.text ?? '',
             timestamp,
             intensity,
+            cause: entrada.cause ?? null,
+            consequence: entrada.consequence ?? null,
+            source: entrada.source ?? 'manual',
         };
 
         console.log('🟡 [addEntry] safeEntry construido:', safeEntry.mood, 'intensity:', safeEntry.intensity);

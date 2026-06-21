@@ -56,6 +56,7 @@ const CheckinScreen: React.FC<CheckinScreenProps> = ({ onSave }) => {
       timestamp: new Date(),
       cause: detectedCause,
       consequence: detectedConsequence,
+      intensity: analysis?.intensity ?? 3,
       source: 'manual',
     };
     onSave(entry);

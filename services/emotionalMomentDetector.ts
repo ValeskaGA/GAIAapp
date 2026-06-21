@@ -14,6 +14,7 @@ export interface MessageAnalysis {
   cause: string | null;
   consequence: string | null;
   pattern: string | null;
+  intensity: number;
 }
 
 /** Momento emocional listo para guardarse */
@@ -23,6 +24,7 @@ export interface EmotionalMoment {
   consequence: string | null;
   noteBrief: string;
   detectedAt: Date;
+  intensity: number;
 }
 
 /** Momento guardado o descartado en la sesión actual */
@@ -36,6 +38,10 @@ import {
   CONSEQUENCE_PATTERNS,
   PATTERN_KEYWORDS,
   FAREWELL_PATTERNS,
+  ANTICIPATION_KEYWORDS,
+  HIGH_INTENSIFIERS,
+  MEDIUM_HIGH_INTENSIFIERS,
+  CONNECTORS,
 } from "./emotionalKeywords";
 
 // ─── Funciones de detección ────────────────────────────────────────
@@ -57,6 +63,7 @@ function detectEmotion(text: string): string | null {
   // Sort by length descending to match longer phrases first (e.g. "en paz" before "paz")
   const sortedKeywords = Object.keys(EMOTION_KEYWORDS).sort((a, b) => b.length - a.length);
 
+  // 1. Detección tradicional (coincidencia exacta en EMOTION_KEYWORDS)
   for (const keyword of sortedKeywords) {
     // Word boundary check: ensure the keyword isn't part of a larger word
     const regex = new RegExp(`(?:^|\\s|[.,;!?¿¡])${escapeRegex(keyword)}(?:$|\\s|[.,;!?¿¡])`, 'i');
@@ -64,6 +71,42 @@ function detectEmotion(text: string): string | null {
       return EMOTION_KEYWORDS[keyword];
     }
   }
+
+  // 2. Detección con keywords anticipadoras (cuando la emoción viene precedida por expresiones como 'me siento', 'ando', etc.)
+  const sortedAnticipators = [...ANTICIPATION_KEYWORDS].sort((a, b) => b.length - a.length);
+  const modifierList = [...HIGH_INTENSIFIERS, ...MEDIUM_HIGH_INTENSIFIERS, ...CONNECTORS];
+  const modifierSubpattern = modifierList
+    .map(m => escapeRegex(m))
+    .sort((a, b) => b.length - a.length)
+    .join('|');
+
+  for (const anticipator of sortedAnticipators) {
+    const anticipatorEscaped = escapeRegex(anticipator);
+    // Regex que busca la keyword anticipadora y captura la palabra que le sigue,
+    // omitiendo modificadores e intensificadores dinámicamente cargados
+    const regexStr = `(?:^|\\s|[.,;!?¿¡])${anticipatorEscaped}\\s+(?:(?:${modifierSubpattern})\\s+)*([a-zñáéíóúü]+)`;
+    const regex = new RegExp(regexStr, 'i');
+    const match = normalized.match(regex);
+
+    if (match) {
+      const capturedWord = match[1].toLowerCase();
+      // Buscamos si la palabra capturada coincide exactamente o comparte la raíz con alguna keyword conocida
+      for (const keyword of sortedKeywords) {
+        if (capturedWord === keyword) {
+          return EMOTION_KEYWORDS[keyword];
+        }
+        // Coincidencia por raíz para tolerar sufijos (ej. 'deprimidísima' -> 'deprimida', 'tristísimo' -> 'triste')
+        if (keyword.length >= 4 && capturedWord.length >= 4) {
+          const rootLength = Math.min(keyword.length - 1, 6);
+          const keywordRoot = keyword.substring(0, rootLength);
+          if (capturedWord.startsWith(keywordRoot) || keyword.startsWith(capturedWord)) {
+            return EMOTION_KEYWORDS[keyword];
+          }
+        }
+      }
+    }
+  }
+
   return null;
 }
 
@@ -122,6 +165,25 @@ function detectFarewell(text: string): boolean {
   return FAREWELL_PATTERNS.some(pattern => normalized.includes(pattern));
 }
 
+/**
+ * Detecta la intensidad emocional (1-5) según intensificadores de HIGH_INTENSIFIERS y MEDIUM_HIGH_INTENSIFIERS.
+ */
+function detectIntensity(text: string): number {
+  const normalized = normalize(text);
+
+  // Comprobar primero intensidad alta (5)
+  for (const word of HIGH_INTENSIFIERS) {
+    if (normalized.includes(word)) return 5;
+  }
+
+  // Comprobar intensidad media-alta (4)
+  for (const word of MEDIUM_HIGH_INTENSIFIERS) {
+    if (normalized.includes(word)) return 4;
+  }
+
+  return 3; // Nivel base por defecto
+}
+
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -130,7 +192,7 @@ function escapeRegex(s: string): string {
 
 /**
  * Analiza un mensaje individual del usuario.
- * Clasifica en: emoción, causa, consecuencia, patrón, despedida.
+ * Clasifica en: emoción, causa, consecuencia, patrón, despedida, intensidad.
  */
 export function analyzeMessage(text: string): MessageAnalysis {
   const emotion = detectEmotion(text);
@@ -138,10 +200,11 @@ export function analyzeMessage(text: string): MessageAnalysis {
   const consequence = detectConsequence(text);
   const pattern = detectPattern(text);
   const isFarewell = detectFarewell(text);
+  const intensity = detectIntensity(text);
 
   const isRelevant = !!(emotion || cause || consequence || pattern);
 
-  return { isRelevant, isFarewell, emotion, cause, consequence, pattern };
+  return { isRelevant, isFarewell, emotion, cause, consequence, pattern, intensity };
 }
 
 /**
@@ -160,6 +223,7 @@ export function evaluateWindow(
   let bestCause: string | null = null;
   let bestConsequence: string | null = null;
   let bestPattern: string | null = null;
+  let maxIntensity = 3;
 
   // Count emotion occurrences to find dominant
   const emotionCounts: Record<string, number> = {};
@@ -171,6 +235,7 @@ export function evaluateWindow(
     if (a.cause && !bestCause) bestCause = a.cause;
     if (a.consequence && !bestConsequence) bestConsequence = a.consequence;
     if (a.pattern && !bestPattern) bestPattern = a.pattern;
+    if (a.intensity > maxIntensity) maxIntensity = a.intensity;
   }
 
   // Find dominant emotion (most frequent)
@@ -196,6 +261,7 @@ export function evaluateWindow(
     consequence: bestConsequence,
     noteBrief,
     detectedAt: new Date(),
+    intensity: maxIntensity,
   };
 }
 

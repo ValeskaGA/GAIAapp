@@ -264,33 +264,61 @@ export const DONT_SAVE_KEYWORDS: string[] = [
   'necesito ayuda con una tarea',
 ];
 
-export const INTENSIFIERS_KEYWORDS: string[] = [
-  'mucho',
+
+export const HIGH_INTENSIFIERS: string[] = [
   'demasiado',
-  'bastante',
-  'muy',
   'horrible',
   'terrible',
-  'fuerte',
-  'intenso',
-  'intensa',
-  'pesado',
-  'pesada',
   'agotador',
   'agotadora',
-  'difícil',
-  'duro',
-  'dura',
   'insoportable',
   'no puedo más',
   'ya no puedo',
   'me supera',
   'me sobrepasa',
-  'me cuesta',
+  'me tiene agotada',
+  'me tiene agotado'
+];
+
+export const MEDIUM_HIGH_INTENSIFIERS: string[] = [
+  'mucho',
+  'bastante',
+  'muy',
+  'super',
+  'súper',
+  'fuerte',
+  'intenso',
+  'intensa',
+  'pesado',
+  'pesada',
+  'difícil',
+  'duro',
+  'dura',
   'me cuesta mucho',
   'me tiene mal',
   'me tiene cansada',
   'me tiene cansado',
-  'me tiene agotada',
-  'me tiene agotado'
+  'me cuesta'
+];
+
+export const ANTICIPATION_KEYWORDS: string[] = [
+  'me siento',
+  'hoy me siento',
+  'me he sentido',
+  'últimamente me siento',
+  'ando',
+  'he estado',
+  'estoy',
+  'me pasa que',
+  'siento que',
+  'sentí que'
+];
+
+export const CONNECTORS: string[] = [
+  'un poco',
+  'como',
+  'con',
+  'de',
+  'que',
+  'como que'
 ];

@@ -87,7 +87,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addEntryRef.current({
         mood: moment.emotion,
         text: moment.noteBrief,
-        intensity: 3,
+        intensity: moment.intensity,
         cause: moment.cause,
         consequence: moment.consequence,
         source: 'chat',

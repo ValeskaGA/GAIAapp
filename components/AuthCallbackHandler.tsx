@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../state/AuthContext';
+import { useOnboarding } from '../state/useOnboarding';
 
 /**
  * AuthCallbackHandler
@@ -20,6 +21,7 @@ import { useAuth } from '../state/AuthContext';
  */
 const AuthCallbackHandler: React.FC = () => {
   const { user, loading } = useAuth();
+  const { isOnboardingCompleted } = useOnboarding();
   const navigate = useNavigate();
   const location = useLocation();
   const previousUser = useRef<string | null>(null);
@@ -42,8 +44,9 @@ const AuthCallbackHandler: React.FC = () => {
       const isOnPublicPage = ['/', '/login', '/register', '/intro', '/ethics', '/consent', '/safety', '/rhythm'].includes(location.pathname);
 
       if (isOnPublicPage) {
-        console.log('🔄 [AuthCallbackHandler] Sesión detectada en página pública — redirigiendo a /chat');
-        navigate('/chat', { replace: true });
+        const destination = isOnboardingCompleted ? '/chat' : '/ethics';
+        console.log(`🔄 [AuthCallbackHandler] Sesión detectada en página pública — redirigiendo a ${destination}`);
+        navigate(destination, { replace: true });
       }
     }
 

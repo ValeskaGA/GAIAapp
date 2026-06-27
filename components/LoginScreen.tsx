@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../state/AuthContext';
+import { useOnboarding } from '../state/useOnboarding';
 
 const LoginScreen: React.FC = () => {
   const navigate = useNavigate();
   const { signIn, resendConfirmation } = useAuth();
+  const { isOnboardingCompleted } = useOnboarding();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +32,8 @@ const LoginScreen: React.FC = () => {
     const result = await signIn(email, password);
 
     if (result.success) {
-      navigate('/chat');
+      // New user (no onboarding flag) → start onboarding flow
+      navigate(isOnboardingCompleted ? '/chat' : '/ethics');
     } else {
       if (result.isEmailNotConfirmed) {
         setShowConfirmationNeeded(true);

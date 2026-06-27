@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../state/AuthContext';
+import { useOnboarding } from '../state/useOnboarding';
 
 const RegisterScreen: React.FC = () => {
   const navigate = useNavigate();
   const { signUp, resendConfirmation, user, loading } = useAuth();
+  const { isOnboardingCompleted } = useOnboarding();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,8 +51,8 @@ const RegisterScreen: React.FC = () => {
         setNeedsConfirmation(true);
         setRegistrationComplete(true);
       } else {
-        // Auto-logged in — navigate to chat
-        navigate('/chat');
+        // Auto-logged in — go to onboarding if not completed, else chat
+        navigate(isOnboardingCompleted ? '/chat' : '/ethics');
       }
     } else {
       setError(result.error || 'Error al crear la cuenta.');

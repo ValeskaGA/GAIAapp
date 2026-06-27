@@ -73,10 +73,10 @@ const App: React.FC = () => {
         <Route path="/intro" element={<WelcomeIntroScreen />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
-        <Route path="/ethics" element={<EthicsScreen />} />
-        <Route path="/consent" element={<ConsentScreen />} />
-        <Route path="/safety" element={<SafetyLimitsScreen />} />
-        <Route path="/rhythm" element={<RhythmScreen />} />
+        <Route path="/ethics" element={<ProtectedRoute><EthicsScreen /></ProtectedRoute>} />
+        <Route path="/consent" element={<ProtectedRoute><ConsentScreen /></ProtectedRoute>} />
+        <Route path="/safety" element={<ProtectedRoute><SafetyLimitsScreen /></ProtectedRoute>} />
+        <Route path="/rhythm" element={<ProtectedRoute><RhythmScreen /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><ChatScreen /></ProtectedRoute>} />
         <Route path="/subscription" element={<SubscriptionScreen />} />
         <Route path="/subscription-ended" element={<SubscriptionEndedScreen />} />

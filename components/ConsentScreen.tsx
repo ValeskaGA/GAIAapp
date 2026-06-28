@@ -1,15 +1,39 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConsent } from '../state/useConsent';
 
 const ConsentScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { autoSaveEnabled, setConsent, hasDecided } = useConsent();
+  const { autoSaveEnabled, setConsent, hasDecided, loading } = useConsent();
+
+  /**
+   * If the user already made a decision (stored in Supabase),
+   * skip this screen and go straight to the next onboarding step.
+   */
+  useEffect(() => {
+    if (!loading && hasDecided) {
+      navigate('/safety', { replace: true });
+    }
+  }, [loading, hasDecided, navigate]);
 
   const handleToggle = () => {
     setConsent(autoSaveEnabled === null ? true : !autoSaveEnabled);
   };
+
+  // ── Loading state: checking DB ───────────────────────────────────
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-[#f3f2f8] dark:bg-background-dark">
+        <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
+      </div>
+    );
+  }
+
+  // ── Already decided → redirecting (avoid flash) ──────────────────
+  if (hasDecided) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#f3f2f8] dark:bg-background-dark p-6 pt-safe pb-safe">
@@ -55,12 +79,15 @@ const ConsentScreen: React.FC = () => {
 
       <div className="mt-auto pt-12">
         <button
-          onClick={() => hasDecided && navigate('/safety')}
-          disabled={!hasDecided}
-          className={`w-full h-14 rounded-full text-white text-lg font-bold shadow-lg transition-all active:scale-[0.98] ${hasDecided
-            ? 'bg-gaia-purple-vibrant hover:brightness-110'
-            : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
-            }`}
+          onClick={async () => {
+            // If user hasn't explicitly toggled, default to false (opted out)
+            if (!hasDecided) {
+              await setConsent(autoSaveEnabled ?? false);
+            }
+            navigate('/safety');
+          }}
+          disabled={loading}
+          className={`w-full h-14 rounded-full text-white text-lg font-bold shadow-lg transition-all active:scale-[0.98] bg-gaia-purple-vibrant hover:brightness-110`}
         >
           Continuar
         </button>

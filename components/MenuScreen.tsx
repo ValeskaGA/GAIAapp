@@ -1,12 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../state/AuthContext';
+import { useConsent } from '../state/useConsent';
 
 const MenuScreen: React.FC = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { autoSaveEnabled, setConsent, loading: consentLoading } = useConsent();
+
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [savingConsent, setSavingConsent] = useState(false);
 
   // Estado para el nombre del perfil con persistencia
   const [userName, setUserName] = useState(() => localStorage.getItem('gaia_user_name') || 'Viajero');
@@ -48,6 +52,12 @@ const MenuScreen: React.FC = () => {
     setIsEditModalOpen(false);
     setError('');
     setEditName(userName);
+  };
+
+  const handleToggleAutoSave = async () => {
+    setSavingConsent(true);
+    await setConsent(!autoSaveEnabled);
+    setSavingConsent(false);
   };
 
   return (
@@ -181,22 +191,77 @@ const MenuScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Configuración Próximamente */}
+      {/* ── Modal de Configuración ── */}
       {showConfigModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-sweep">
-          <div className="bg-white dark:bg-surface-dark w-full max-w-xs rounded-3xl p-8 shadow-2xl text-center border border-gray-100 dark:border-white/5">
-            <div className="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-[32px]">settings_suggest</span>
+          <div className="bg-white dark:bg-surface-dark w-full max-w-sm rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-white/5">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                <span className="material-symbols-outlined text-[22px]">settings</span>
+              </div>
+              <h3 className="text-xl font-bold text-text-main dark:text-text-dark-main">Configuración</h3>
             </div>
-            <h3 className="text-xl font-bold text-text-main dark:text-text-dark-main mb-2">Ajustes</h3>
-            <p className="text-text-secondary dark:text-text-dark-secondary text-sm mb-8 leading-relaxed">
-              Esta opción estará disponible pronto.
-            </p>
+
+            {/* AutoSave preference */}
+            <div className="rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50/60 dark:bg-background-dark/40 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-[15px] font-semibold text-text-main dark:text-text-dark-main leading-snug">
+                    Guardado automático de momentos
+                  </p>
+                  <p className="text-[12px] text-text-secondary dark:text-text-dark-secondary mt-1 leading-relaxed">
+                    Permite que GAIA guarde automáticamente en tu historial los momentos importantes que detecta en el chat.
+                  </p>
+                </div>
+
+                {/* Toggle */}
+                {consentLoading || savingConsent ? (
+                  <span className="material-symbols-outlined animate-spin text-primary text-[22px] shrink-0 mt-0.5">
+                    progress_activity
+                  </span>
+                ) : (
+                  <div
+                    id="auto-save-toggle"
+                    role="switch"
+                    aria-checked={autoSaveEnabled === true}
+                    className={`relative inline-block w-12 h-6 align-middle select-none transition-all duration-300 ease-in cursor-pointer rounded-full shrink-0 mt-0.5 ${autoSaveEnabled === true ? 'shadow-[0_0_16px_rgba(167,139,250,0.7)]' : ''}`}
+                    onClick={handleToggleAutoSave}
+                  >
+                    <div
+                      className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ${autoSaveEnabled === true ? 'bg-gaia-purple-vibrant' : 'bg-gaia-lavender-200 dark:bg-white/20'}`}
+                    >
+                      <div
+                        className={`block w-6 h-6 rounded-full bg-white border-2 transition-all duration-300 ${autoSaveEnabled === true ? 'translate-x-6 border-gaia-purple-vibrant' : 'translate-x-0 border-gaia-lavender-100'}`}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status label */}
+              <div className="mt-4 flex items-center gap-1.5">
+                <span
+                  className={`inline-block size-2 rounded-full ${autoSaveEnabled === true ? 'bg-green-400' : 'bg-gray-300 dark:bg-white/20'}`}
+                />
+                <span className="text-[11px] text-text-secondary dark:text-text-dark-secondary">
+                  {consentLoading
+                    ? 'Cargando...'
+                    : autoSaveEnabled === true
+                    ? 'Activado — GAIA guarda momentos automáticamente'
+                    : autoSaveEnabled === false
+                    ? 'Desactivado — GAIA te pedirá permiso antes de guardar'
+                    : 'Sin configurar'}
+                </span>
+              </div>
+            </div>
+
+            {/* Close */}
             <button
               onClick={() => setShowConfigModal(false)}
-              className="w-full h-12 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-md"
+              className="mt-6 w-full h-12 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-md"
             >
-              Entendido
+              Listo
             </button>
           </div>
         </div>
